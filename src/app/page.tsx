@@ -1,65 +1,133 @@
-import Image from "next/image";
+'use client';
+
+import React, { useState } from 'react';
+import { Box, Container, Fab } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import Layout from '@/components/Layout/Layout';
+import OverviewCards from '@/components/Dashboard/OverviewCards';
+import Charts from '@/components/Dashboard/Charts';
+import TransactionList from '@/components/Dashboard/TransactionList';
+import TransactionForm from '@/components/Forms/TransactionForm';
+import ConfirmDialog from '@/components/Common/ConfirmDialog';
+import { useTransactions } from '@/hooks/useTransactions';
+import { Transaction } from '@/lib/types';
 
 export default function Home() {
+  const {
+    transactions,
+    categories,
+    summary,
+    expensesByCategory,
+    incomeByCategory,
+    addTransaction,
+    editTransaction,
+    removeTransaction,
+  } = useTransactions();
+
+  const [formOpen, setFormOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState<string | null>(null);
+
+  const handleOpenForm = () => {
+    setEditingTransaction(null);
+    setFormOpen(true);
+  };
+
+  const handleCloseForm = () => {
+    setFormOpen(false);
+    setEditingTransaction(null);
+  };
+
+  const handleSubmit = (transaction: Transaction) => {
+    if (editingTransaction) {
+      editTransaction(editingTransaction.id, transaction);
+    } else {
+      addTransaction(transaction);
+    }
+  };
+
+  const handleEdit = (transaction: Transaction) => {
+    setEditingTransaction(transaction);
+    setFormOpen(true);
+  };
+
+  const handleDeleteClick = (id: string) => {
+    setTransactionToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (transactionToDelete) {
+      removeTransaction(transactionToDelete);
+    }
+    setDeleteDialogOpen(false);
+    setTransactionToDelete(null);
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setTransactionToDelete(null);
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <Layout onAddTransaction={handleOpenForm}>
+      <Container maxWidth="xl">
+        <Box sx={{ mb: 4 }}>
+          <OverviewCards summary={summary} />
+        </Box>
+
+        <Box sx={{ mb: 4 }}>
+          <Charts
+            expensesByCategory={expensesByCategory}
+            incomeByCategory={incomeByCategory}
+            totalIncome={summary.totalIncome}
+            totalExpense={summary.totalExpense}
+          />
+        </Box>
+
+        <Box>
+          <TransactionList
+            transactions={transactions.slice(0, 10)}
+            categories={categories}
+            onEdit={handleEdit}
+            onDelete={handleDeleteClick}
+          />
+        </Box>
+
+        {/* Floating Action Button for mobile */}
+        <Fab
+          color="primary"
+          aria-label="add"
+          onClick={handleOpenForm}
+          sx={{
+            position: 'fixed',
+            bottom: 16,
+            right: 16,
+            display: { xs: 'flex', sm: 'none' },
+          }}
+        >
+          <AddIcon />
+        </Fab>
+
+        {/* Transaction Form Dialog */}
+        <TransactionForm
+          open={formOpen}
+          onClose={handleCloseForm}
+          onSubmit={handleSubmit}
+          categories={categories}
+          editTransaction={editingTransaction}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+
+        {/* Delete Confirmation Dialog */}
+        <ConfirmDialog
+          open={deleteDialogOpen}
+          title="Delete Transaction"
+          message="Are you sure you want to delete this transaction? This action cannot be undone."
+          onConfirm={handleDeleteConfirm}
+          onCancel={handleDeleteCancel}
+        />
+      </Container>
+    </Layout>
   );
 }
