@@ -1,53 +1,45 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Box, Toolbar, ThemeProvider, CssBaseline } from '@mui/material';
-import { theme, darkTheme } from '@/theme/theme';
+import React from 'react';
+import { Box, Toolbar } from '@mui/material';
+import { useTheme } from '@/components/ThemeProvider/ThemeProvider';
 import AppBar from './AppBar';
 import Sidebar from './Sidebar';
+import BottomNav from './BottomNav';
 
 interface LayoutProps {
     children: React.ReactNode;
     onAddTransaction: () => void;
+    showAddButton?: boolean;
 }
 
-export default function Layout({ children, onAddTransaction }: LayoutProps) {
-    const [mobileOpen, setMobileOpen] = useState(false);
-    const [darkMode, setDarkMode] = useState(false);
-
-    const handleDrawerToggle = () => {
-        setMobileOpen(!mobileOpen);
-    };
-
-    const handleToggleDarkMode = () => {
-        setDarkMode(!darkMode);
-    };
+export default function Layout({ children, onAddTransaction, showAddButton = true }: LayoutProps) {
+    const { darkMode, toggleDarkMode } = useTheme();
 
     return (
-        <ThemeProvider theme={darkMode ? darkTheme : theme}>
-            <CssBaseline />
-            <Box sx={{ display: 'flex' }}>
-                <AppBar
-                    onMenuClick={handleDrawerToggle}
-                    onAddClick={onAddTransaction}
-                    darkMode={darkMode}
-                    onToggleDarkMode={handleToggleDarkMode}
-                />
-                <Sidebar mobileOpen={mobileOpen} onDrawerToggle={handleDrawerToggle} />
-                <Box
-                    component="main"
-                    sx={{
-                        flexGrow: 1,
-                        p: { xs: 2, sm: 3 },
-                        width: { sm: `calc(100% - 240px)` },
-                        minHeight: '100vh',
-                        bgcolor: 'background.default',
-                    }}
-                >
-                    <Toolbar />
-                    {children}
-                </Box>
+        <Box sx={{ display: 'flex' }}>
+            <AppBar
+                onAddClick={onAddTransaction}
+                darkMode={darkMode}
+                onToggleDarkMode={toggleDarkMode}
+                showAddButton={showAddButton}
+            />
+            <Sidebar />
+            <Box
+                component="main"
+                sx={{
+                    flexGrow: 1,
+                    p: { xs: 2, sm: 3 },
+                    pb: { xs: 10, sm: 3 }, // Extra padding at bottom for mobile nav
+                    width: { sm: `calc(100% - 240px)` },
+                    minHeight: '100vh',
+                    bgcolor: 'background.default',
+                }}
+            >
+                <Toolbar />
+                {children}
             </Box>
-        </ThemeProvider>
+            <BottomNav />
+        </Box>
     );
 }

@@ -26,9 +26,16 @@ export const useTransactions = () => {
     // Initialize data from localStorage
     useEffect(() => {
         initializeStorage();
-        setTransactions(getTransactions());
-        setCategories(getCategories());
-        setIsLoading(false);
+        const loadedTransactions = getTransactions();
+        const loadedCategories = getCategories();
+
+        const timer = setTimeout(() => {
+            setTransactions(loadedTransactions);
+            setCategories(loadedCategories);
+            setIsLoading(false);
+        }, 0);
+
+        return () => clearTimeout(timer);
     }, []);
 
     // Add transaction

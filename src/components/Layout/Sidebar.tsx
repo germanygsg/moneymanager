@@ -12,17 +12,13 @@ import {
     Box,
     Divider,
 } from '@mui/material';
+import Link from 'next/link';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import CategoryIcon from '@mui/icons-material/Category';
 import SettingsIcon from '@mui/icons-material/Settings';
 
 const drawerWidth = 240;
-
-interface SidebarProps {
-    mobileOpen: boolean;
-    onDrawerToggle: () => void;
-}
 
 const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
@@ -31,7 +27,7 @@ const menuItems = [
     { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
 ];
 
-export default function Sidebar({ mobileOpen, onDrawerToggle }: SidebarProps) {
+export default function Sidebar() {
     const drawer = (
         <Box>
             <Toolbar />
@@ -39,7 +35,7 @@ export default function Sidebar({ mobileOpen, onDrawerToggle }: SidebarProps) {
             <List>
                 {menuItems.map((item) => (
                     <ListItem key={item.text} disablePadding>
-                        <ListItemButton>
+                        <ListItemButton component={Link} href={item.path}>
                             <ListItemIcon sx={{ color: 'primary.main' }}>
                                 {item.icon}
                             </ListItemIcon>
@@ -56,23 +52,7 @@ export default function Sidebar({ mobileOpen, onDrawerToggle }: SidebarProps) {
             component="nav"
             sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
         >
-            {/* Mobile drawer */}
-            <Drawer
-                variant="temporary"
-                open={mobileOpen}
-                onClose={onDrawerToggle}
-                ModalProps={{
-                    keepMounted: true, // Better open performance on mobile.
-                }}
-                sx={{
-                    display: { xs: 'block', sm: 'none' },
-                    '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
-                }}
-            >
-                {drawer}
-            </Drawer>
-
-            {/* Desktop drawer */}
+            {/* Desktop drawer - hidden on mobile */}
             <Drawer
                 variant="permanent"
                 sx={{

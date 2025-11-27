@@ -14,7 +14,7 @@ import {
     Select,
     Box,
 } from '@mui/material';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Transaction, Category } from '@/lib/types';
@@ -49,7 +49,6 @@ export default function TransactionForm({
         control,
         handleSubmit,
         reset,
-        watch,
         formState: { errors },
     } = useForm<TransactionFormData>({
         resolver: zodResolver(transactionSchema),
@@ -62,7 +61,10 @@ export default function TransactionForm({
         },
     });
 
-    const selectedType = watch('type');
+    const selectedType = useWatch({
+        control,
+        name: 'type',
+    });
 
     // Filter categories by type
     const filteredCategories = categories.filter(c => c.type === selectedType);

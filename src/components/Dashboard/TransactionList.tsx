@@ -10,6 +10,7 @@ interface TransactionListProps {
     categories: Category[];
     onEdit: (transaction: Transaction) => void;
     onDelete: (id: string) => void;
+    title?: string;
 }
 
 export default function TransactionList({
@@ -17,6 +18,7 @@ export default function TransactionList({
     categories,
     onEdit,
     onDelete,
+    title = "Recent Transactions",
 }: TransactionListProps) {
     const getCategoryColor = (categoryName: string) => {
         const category = categories.find(c => c.name === categoryName);
@@ -36,7 +38,7 @@ export default function TransactionList({
                     No transactions yet
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                    Click "Add Transaction" to get started
+                    Click &quot;Add Transaction&quot; to get started
                 </Typography>
             </Paper>
         );
@@ -45,7 +47,7 @@ export default function TransactionList({
     return (
         <Box>
             <Typography variant="h6" gutterBottom fontWeight={600}>
-                Recent Transactions
+                {title}
             </Typography>
             {transactions.map((transaction) => (
                 <TransactionCard

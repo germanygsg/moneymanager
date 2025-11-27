@@ -73,8 +73,8 @@ export default function OverviewCards({ summary }: OverviewCardsProps) {
                             </Box>
                             <Box
                                 sx={{
-                                    color: card.color,
-                                    opacity: 0.3,
+                                    color: '#ffffff',
+                                    opacity: 0.8,
                                 }}
                             >
                                 {card.icon}

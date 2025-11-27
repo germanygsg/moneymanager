@@ -183,8 +183,12 @@ export const darkTheme = createTheme({
             dark: '#ef4444',
         },
         background: {
-            default: '#0f172a',
-            paper: '#1e293b',
+            default: '#030f1c',
+            paper: '#101f32',
+        },
+        text: {
+            primary: '#ffffff',
+            secondary: 'rgba(255, 255, 255, 0.7)',
         },
     },
     typography,
@@ -206,6 +210,13 @@ export const darkTheme = createTheme({
                 paper: {
                     ...components.MuiDrawer.styleOverrides.paper,
                     boxShadow: '2px 0 8px rgba(0, 0, 0, 0.3)',
+                },
+            },
+        },
+        MuiSvgIcon: {
+            styleOverrides: {
+                root: {
+                    color: '#ffffff',
                 },
             },
         },

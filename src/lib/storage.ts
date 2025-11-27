@@ -1,4 +1,4 @@
-import { Transaction, Category, TransactionType } from './types';
+import { Transaction, Category } from './types';
 
 const TRANSACTIONS_KEY = 'dexter_cashflow_transactions';
 const CATEGORIES_KEY = 'dexter_cashflow_categories';
