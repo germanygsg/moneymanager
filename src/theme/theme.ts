@@ -1,5 +1,108 @@
 import { createTheme } from '@mui/material/styles';
 
+// Shared typography configuration
+const typography = {
+    fontFamily: '"Inter", sans-serif',
+    allVariants: {
+        fontFamily: '"Inter", sans-serif',
+    },
+    h1: {
+        fontSize: '2.5rem',
+        fontWeight: 700,
+        fontFamily: '"Inter", sans-serif',
+    },
+    h2: {
+        fontSize: '2rem',
+        fontWeight: 600,
+        fontFamily: '"Inter", sans-serif',
+    },
+    h3: {
+        fontSize: '1.75rem',
+        fontWeight: 600,
+        fontFamily: '"Inter", sans-serif',
+    },
+    h4: {
+        fontSize: '1.5rem',
+        fontWeight: 600,
+        fontFamily: '"Inter", sans-serif',
+    },
+    h5: {
+        fontSize: '1.25rem',
+        fontWeight: 600,
+        fontFamily: '"Inter", sans-serif',
+    },
+    h6: {
+        fontSize: '1rem',
+        fontWeight: 600,
+        fontFamily: '"Inter", sans-serif',
+    },
+    body1: {
+        fontFamily: '"Inter", sans-serif',
+    },
+    body2: {
+        fontFamily: '"Inter", sans-serif',
+    },
+    button: {
+        fontFamily: '"Inter", sans-serif',
+    },
+    caption: {
+        fontFamily: '"Inter", sans-serif',
+    },
+    overline: {
+        fontFamily: '"Inter", sans-serif',
+    },
+    subtitle1: {
+        fontFamily: '"Inter", sans-serif',
+    },
+    subtitle2: {
+        fontFamily: '"Inter", sans-serif',
+    },
+};
+
+// Shared component overrides
+const components = {
+    MuiButton: {
+        styleOverrides: {
+            root: {
+                textTransform: 'none' as const,
+                fontWeight: 600,
+                borderRadius: 8,
+                padding: '10px 20px',
+            },
+            contained: {
+                boxShadow: 'none',
+                '&:hover': {
+                    boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
+                },
+            },
+        },
+    },
+    MuiCard: {
+        styleOverrides: {
+            root: {
+                borderRadius: 16,
+                transition: 'box-shadow 0.3s ease',
+            },
+        },
+    },
+    MuiTextField: {
+        styleOverrides: {
+            root: {
+                '& .MuiOutlinedInput-root': {
+                    borderRadius: 8,
+                },
+            },
+        },
+    },
+    MuiDrawer: {
+        styleOverrides: {
+            paper: {
+                borderRight: 'none',
+            },
+        },
+    },
+};
+
 export const theme = createTheme({
     palette: {
         mode: 'light',
@@ -28,70 +131,19 @@ export const theme = createTheme({
             paper: '#ffffff',
         },
     },
-    typography: {
-        fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-        h1: {
-            fontSize: '2.5rem',
-            fontWeight: 700,
-        },
-        h2: {
-            fontSize: '2rem',
-            fontWeight: 600,
-        },
-        h3: {
-            fontSize: '1.75rem',
-            fontWeight: 600,
-        },
-        h4: {
-            fontSize: '1.5rem',
-            fontWeight: 600,
-        },
-        h5: {
-            fontSize: '1.25rem',
-            fontWeight: 600,
-        },
-        h6: {
-            fontSize: '1rem',
-            fontWeight: 600,
-        },
-    },
+    typography,
     shape: {
         borderRadius: 12,
     },
     components: {
-        MuiButton: {
-            styleOverrides: {
-                root: {
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    borderRadius: 8,
-                    padding: '10px 20px',
-                },
-                contained: {
-                    boxShadow: 'none',
-                    '&:hover': {
-                        boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
-                    },
-                },
-            },
-        },
+        ...components,
         MuiCard: {
             styleOverrides: {
                 root: {
+                    ...components.MuiCard.styleOverrides.root,
                     boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                    borderRadius: 16,
                     '&:hover': {
                         boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-                    },
-                    transition: 'box-shadow 0.3s ease',
-                },
-            },
-        },
-        MuiTextField: {
-            styleOverrides: {
-                root: {
-                    '& .MuiOutlinedInput-root': {
-                        borderRadius: 8,
                     },
                 },
             },
@@ -99,7 +151,7 @@ export const theme = createTheme({
         MuiDrawer: {
             styleOverrides: {
                 paper: {
-                    borderRight: 'none',
+                    ...components.MuiDrawer.styleOverrides.paper,
                     boxShadow: '2px 0 8px rgba(0, 0, 0, 0.1)',
                 },
             },
@@ -135,27 +187,25 @@ export const darkTheme = createTheme({
             paper: '#1e293b',
         },
     },
-    typography: {
-        fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-    },
+    typography,
     shape: {
         borderRadius: 12,
     },
     components: {
-        MuiButton: {
-            styleOverrides: {
-                root: {
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    borderRadius: 8,
-                },
-            },
-        },
+        ...components,
         MuiCard: {
             styleOverrides: {
                 root: {
+                    ...components.MuiCard.styleOverrides.root,
                     boxShadow: '0 1px 3px rgba(0, 0, 0, 0.3)',
-                    borderRadius: 16,
+                },
+            },
+        },
+        MuiDrawer: {
+            styleOverrides: {
+                paper: {
+                    ...components.MuiDrawer.styleOverrides.paper,
+                    boxShadow: '2px 0 8px rgba(0, 0, 0, 0.3)',
                 },
             },
         },

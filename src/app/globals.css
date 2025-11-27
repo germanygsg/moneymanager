@@ -13,6 +13,7 @@ body {
 body {
   color: rgb(var(--foreground-rgb));
   background: rgb(var(--background-rgb));
+  font-family: 'Inter', sans-serif !important;
 }
 
 :root {
@@ -50,6 +51,7 @@ html {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
