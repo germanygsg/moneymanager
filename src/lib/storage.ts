@@ -86,3 +86,11 @@ export const initializeStorage = (): void => {
         localStorage.setItem(TRANSACTIONS_KEY, JSON.stringify([]));
     }
 };
+
+export const clearAllData = (): void => {
+    if (typeof window === 'undefined') return;
+    localStorage.removeItem(TRANSACTIONS_KEY);
+    localStorage.removeItem(CATEGORIES_KEY);
+    // Reinitialize with defaults
+    initializeStorage();
+};

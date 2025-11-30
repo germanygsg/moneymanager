@@ -1,12 +1,14 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import {
     AppBar as MuiAppBar,
     Toolbar,
     Typography,
     IconButton,
     Button,
+    Box,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
@@ -29,9 +31,18 @@ export default function AppBar({ onAddClick, darkMode, onToggleDarkMode, showAdd
             borderColor: 'divider',
         }}>
             <Toolbar>
-                <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 700 }}>
-                    ONLINE LEDGER
-                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, gap: 1.5 }}>
+                    <Image
+                        src="/logo.png"
+                        alt="ONLINE LEDGER Logo"
+                        width={32}
+                        height={32}
+                        style={{ borderRadius: '4px' }}
+                    />
+                    <Typography variant="h6" component="div" sx={{ fontWeight: 700 }}>
+                        ONLINE LEDGER
+                    </Typography>
+                </Box>
 
                 <IconButton onClick={onToggleDarkMode} color="inherit" sx={{ mr: 1 }}>
                     {darkMode ? <Brightness7Icon /> : <Brightness4Icon />}

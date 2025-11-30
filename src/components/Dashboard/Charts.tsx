@@ -5,7 +5,7 @@ import { Card, CardContent, Typography, Box } from '@mui/material';
 import { PieChart } from '@mui/x-charts/PieChart';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { CategoryTotal } from '@/lib/types';
-import { formatCurrency } from '@/lib/utils';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface ChartsProps {
     expensesByCategory: CategoryTotal[];
@@ -20,6 +20,8 @@ export default function Charts({
     totalIncome,
     totalExpense,
 }: ChartsProps) {
+    const { formatCurrency } = useCurrency();
+
     const pieData = [
         { id: 0, value: totalIncome, label: 'Income', color: '#10b981' },
         { id: 1, value: totalExpense, label: 'Expense', color: '#ef4444' },

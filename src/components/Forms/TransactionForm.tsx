@@ -19,6 +19,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Transaction, Category } from '@/lib/types';
 import { generateId } from '@/lib/utils';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 const transactionSchema = z.object({
     date: z.string().min(1, 'Date is required'),
@@ -45,6 +46,7 @@ export default function TransactionForm({
     categories,
     editTransaction,
 }: TransactionFormProps) {
+    const { currency } = useCurrency();
     const {
         control,
         handleSubmit,
@@ -189,7 +191,7 @@ export default function TransactionForm({
                                     error={!!errors.amount}
                                     helperText={errors.amount?.message}
                                     InputProps={{
-                                        startAdornment: <Box sx={{ mr: 1 }}>Rp</Box>,
+                                        startAdornment: <Box sx={{ mr: 1 }}>{currency.symbol}</Box>,
                                     }}
                                 />
                             )}

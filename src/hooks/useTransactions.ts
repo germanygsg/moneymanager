@@ -8,7 +8,11 @@ import {
     updateTransaction,
     deleteTransaction,
     getCategories,
+    saveCategory,
+    updateCategory,
+    deleteCategory,
     initializeStorage,
+    clearAllData,
 } from '@/lib/storage';
 import {
     calculateSummary,
@@ -56,6 +60,24 @@ export const useTransactions = () => {
         setTransactions(getTransactions());
     }, []);
 
+    // Add category
+    const addCategory = useCallback((category: Category) => {
+        saveCategory(category);
+        setCategories(getCategories());
+    }, []);
+
+    // Update category
+    const editCategory = useCallback((id: string, category: Category) => {
+        updateCategory(id, category);
+        setCategories(getCategories());
+    }, []);
+
+    // Delete category
+    const removeCategory = useCallback((id: string) => {
+        deleteCategory(id);
+        setCategories(getCategories());
+    }, []);
+
     // Update filters
     const updateFilters = useCallback((newFilters: FilterOptions) => {
         setFilters(newFilters);
@@ -64,6 +86,13 @@ export const useTransactions = () => {
     // Clear filters
     const clearFilters = useCallback(() => {
         setFilters({ type: 'All' });
+    }, []);
+
+    // Clear all data
+    const clearData = useCallback(() => {
+        clearAllData();
+        setTransactions(getTransactions());
+        setCategories(getCategories());
     }, []);
 
     // Computed values
@@ -91,7 +120,11 @@ export const useTransactions = () => {
         addTransaction,
         editTransaction,
         removeTransaction,
+        addCategory,
+        editCategory,
+        removeCategory,
         updateFilters,
         clearFilters,
+        clearData,
     };
 };

@@ -12,7 +12,8 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Transaction } from '@/lib/types';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatDate } from '@/lib/utils';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface TransactionCardProps {
     transaction: Transaction;
@@ -27,6 +28,7 @@ export default function TransactionCard({
     onEdit,
     onDelete,
 }: TransactionCardProps) {
+    const { formatCurrency } = useCurrency();
     const isIncome = transaction.type === 'Income';
 
     return (

@@ -7,13 +7,15 @@ import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import { Summary } from '@/lib/types';
-import { formatCurrency } from '@/lib/utils';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface OverviewCardsProps {
     summary: Summary;
 }
 
 export default function OverviewCards({ summary }: OverviewCardsProps) {
+    const { formatCurrency } = useCurrency();
+
     const cards = [
         {
             title: 'Total Income',
@@ -73,7 +75,7 @@ export default function OverviewCards({ summary }: OverviewCardsProps) {
                             </Box>
                             <Box
                                 sx={{
-                                    color: '#ffffff',
+                                    color: card.color,
                                     opacity: 0.8,
                                 }}
                             >
