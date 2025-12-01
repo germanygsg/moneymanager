@@ -3,6 +3,9 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import type { NextRequest } from 'next/server';
+
 // GET /api/user/ledger - Get the user's first ledger
 export async function GET() {
     try {

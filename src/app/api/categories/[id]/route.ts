@@ -3,10 +3,15 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
+interface RouteParams {
+  params: Promise<{ id: string }>;
+}
+
 // PUT /api/categories/[id] - Update a category
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, context: RouteParams) {
     try {
         const session = await getServerSession(authOptions);
+        const { id } = await context.params;
 
         if (!session?.user?.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -22,7 +27,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         // First verify user has access to this category
         const existingCategory = await prisma.category.findFirst({
             where: {
-                id: params.id,
+                id: id,
                 ledger: {
                     OR: [
                         { ownerId: session.user.id },
@@ -44,7 +49,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
         const updatedCategory = await prisma.category.update({
             where: {
-                id: params.id
+                id: id
             },
             data: {
                 name,
@@ -72,9 +77,10 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 }
 
 // DELETE /api/categories/[id] - Delete a category
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, context: RouteParams) {
     try {
         const session = await getServerSession(authOptions);
+        const { id } = await context.params;
 
         if (!session?.user?.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -83,7 +89,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
         // First verify user has access to this category
         const existingCategory = await prisma.category.findFirst({
             where: {
-                id: params.id,
+                id: id,
                 ledger: {
                     OR: [
                         { ownerId: session.user.id },
@@ -106,7 +112,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
         // Check if category is being used by any transactions
         const transactionCount = await prisma.transaction.count({
             where: {
-                categoryId: params.id
+                categoryId: id
             }
         });
 
@@ -118,7 +124,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
         await prisma.category.delete({
             where: {
-                id: params.id
+                id: id
             }
         });
 
