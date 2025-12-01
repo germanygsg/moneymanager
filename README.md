@@ -1,53 +1,97 @@
-# Dexter Cashflow 💰
+# Online Ledger - Financial Tracker 💰
 
-A modern, mobile-first financial tracking web application built with Next.js, TypeScript, and Material-UI.
+A modern, multi-user financial tracking web application with authentication, collaborative ledgers, and cloud storage.
 
-## Features
+## ✨ Features
 
-- ✅ **CRUD Operations**: Create, Read, Update, and Delete financial transactions
+### Core Features
+- ✅ **Multi-User Authentication**: Secure sign-up and sign-in with username/password
+- 👥 **Ledger Sharing**: Invite other users to collaborate on your ledger
 - 📊 **Data Visualization**: Interactive charts showing income vs expenses and category breakdowns
+- 💾 **Cloud Storage**: Data stored in PostgreSQL database via Vercel
+- 🔒 **Secure**: Passwords hashed with bcrypt, JWT sessions
+
+### Financial Management
+- ✅ **CRUD Operations**: Create, Read, Update, and Delete financial transactions
 - 📱 **Mobile Responsive**: Optimized for mobile devices with touch-friendly interface
-- 🎨 **Modern UI**: Built with Material-UI Dashboard template
-- 💾 **Local Storage**: Data persists in browser localStorage
-- 🌓 **Dark Mode**: Toggle between light and dark themes
+- 💱 **Multi-Currency Support**: Choose from multiple currencies (USD, EUR, IDR, etc.)
 - 📈 **Real-time Calculations**: Automatic balance and summary calculations
+- 🌓 **Dark Mode**: Toggle between light and dark themes
 
-## Technology Stack
+### Collaboration
+- 👤 **User Accounts**: Each user has their own secure account
+- 🤝 **Share Ledgers**: Invite collaborators by username
+- 🔐 **Access Control**: Manage who can access your ledger
+- 💼 **Team Finance**: Perfect for couples, families, or small teams
 
-- **Framework**: Next.js 14+ (App Router)
+## 🛠 Technology Stack
+
+- **Framework**: Next.js 16+ (App Router)
 - **Language**: TypeScript
-- **UI Library**: Material-UI (MUI) v5
+- **Database**: PostgreSQL with Prisma ORM
+- **Authentication**: NextAuth.js
+- **UI Library**: Material-UI (MUI) v7
 - **Charts**: MUI X Charts
 - **Forms**: React Hook Form + Zod validation
-- **State Management**: React Hooks
-- **Styling**: Emotion (CSS-in-JS)
-- **Date Handling**: date-fns
+- **Password Security**: bcryptjs
+- **Deployment**: Vercel-ready
 
-## Getting Started
+## 🚀 Quick Start
 
 ### Prerequisites
 
 - Node.js 18+ installed
+- PostgreSQL database (local or cloud)
 - npm or yarn package manager
 
 ### Installation
 
-1. Clone the repository or navigate to the project directory:
+1. **Clone and Install**
 ```bash
-cd dexter-cashflow
-```
-
-2. Install dependencies:
-```bash
+cd moneymanager
 npm install
 ```
 
-3. Run the development server:
+2. **Set Up Environment Variables**
+
+Create a `.env` file in the root:
+```env
+DATABASE_URL="postgresql://username:password@localhost:5432/moneymanager"
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-secret-here"
+```
+
+Generate `NEXTAUTH_SECRET`:
+```bash
+openssl rand -base64 32
+```
+
+3. **Initialize Database**
+```bash
+npm run db:push
+npm run db:generate
+```
+
+4. **Run Development Server**
 ```bash
 npm run dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser
+5. **Open in Browser**
+
+Visit [http://localhost:3000](http://localhost:3000) - you'll be redirected to sign up!
+
+### First Time Setup
+
+1. Click "Sign Up" and create your account
+2. You'll automatically get a default ledger with categories
+3. Start adding transactions!
+4. Invite collaborators from Settings → Invite User
+
+## 📖 Documentation
+
+- **[Deployment Guide](DEPLOYMENT_GUIDE.md)** - Complete guide for deploying to Vercel
+- **[Environment Setup](ENV_SETUP.md)** - Environment variables configuration
 
 ## Deployment to Vercel
 
@@ -157,24 +201,32 @@ Transactions are stored with the following fields:
 - Safari
 - Edge
 
-## Data Storage
+## 💾 Data Storage
 
-Data is stored locally in the browser's localStorage. This means:
-- Data persists across browser sessions
-- Data is device-specific (not synced across devices)
-- Clearing browser data will delete all transactions
-- No backend server required
+Data is stored in a PostgreSQL database:
+- ✅ **Cloud Storage**: Data synced across all your devices
+- ✅ **Multi-User**: Each user has their own account and ledger
+- ✅ **Collaboration**: Share your ledger with other users
+- ✅ **Secure**: All passwords are hashed, data is protected
+- ✅ **Persistent**: Data stored safely in Vercel Postgres
 
-## Future Enhancements
+## 🎯 Completed Features
 
-Potential features for future versions:
-- Cloud storage and multi-device sync
-- User authentication
-- Export to CSV/Excel
-- Budget planning and alerts
-- Recurring transactions
-- Multiple currency support
-- Advanced filtering and reporting
+- ✅ Cloud storage and multi-device sync
+- ✅ User authentication
+- ✅ Multi-user collaboration
+- ✅ Multiple currency support
+- ✅ Export/Import data
+
+## 🔮 Potential Future Enhancements
+
+- 📊 Advanced reporting and analytics
+- 📅 Budget planning and alerts
+- 🔄 Recurring transactions
+- 📁 Multiple ledgers per user
+- 🏷️ Transaction tags and notes
+- 📧 Email notifications
+- 🌍 Multiple language support
 
 ## License
 

@@ -1,0 +1,98 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// User model for authentication
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  ownedLedgers   Ledger[]       @relation("LedgerOwner")
+  sharedLedgers  LedgerUser[]
+}
+
+// Ledger model - each user can have their own ledger and share it
+model Ledger {
+  id        String   @id @default(cuid())
+  name      String   @default("My Ledger")
+  ownerId   String
+  currency  String   @default("USD")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  owner        User           @relation("LedgerOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  sharedWith   LedgerUser[]
+  categories   Category[]
+  transactions Transaction[]
+
+  @@index([ownerId])
+}
+
+// Junction table for sharing ledgers with other users
+model LedgerUser {
+  id        String   @id @default(cuid())
+  ledgerId  String
+  userId    String
+  role      String   @default("viewer") // viewer, editor
+  createdAt DateTime @default(now())
+
+  // Relations
+  ledger Ledger @relation(fields: [ledgerId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([ledgerId, userId])
+  @@index([ledgerId])
+  @@index([userId])
+}
+
+// Category model
+model Category {
+  id       String @id @default(cuid())
+  name     String
+  type     String // Income or Expense
+  icon     String
+  color    String @default("#3498db")
+  ledgerId String
+
+  // Relations
+  ledger       Ledger        @relation(fields: [ledgerId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@index([ledgerId])
+  @@index([type])
+}
+
+// Transaction model
+model Transaction {
+  id          String   @id @default(cuid())
+  description String
+  amount      Float
+  type        String // Income or Expense
+  categoryId  String
+  ledgerId    String
+  date        DateTime @default(now())
+  note        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  ledger   Ledger   @relation(fields: [ledgerId], references: [id], onDelete: Cascade)
+
+  @@index([ledgerId])
+  @@index([categoryId])
+  @@index([date])
+  @@index([type])
+}

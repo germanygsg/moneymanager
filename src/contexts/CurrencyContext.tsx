@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 export interface Currency {
     code: string;
@@ -28,16 +28,26 @@ const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined
 export function CurrencyProvider({ children }: { children: React.ReactNode }) {
     const [currency, setCurrencyState] = useState<Currency>(CURRENCIES[4]); // Default to IDR
 
-    useEffect(() => {
-        // Load saved currency from localStorage
+    const initializeCurrency = useCallback(() => {
         const savedCurrencyCode = localStorage.getItem('preferred_currency');
         if (savedCurrencyCode) {
             const savedCurrency = CURRENCIES.find(c => c.code === savedCurrencyCode);
             if (savedCurrency) {
-                setCurrencyState(savedCurrency);
+                setTimeout(() => {
+                    setCurrencyState(prev => {
+                        if (prev.code !== savedCurrency.code) {
+                            return savedCurrency;
+                        }
+                        return prev;
+                    });
+                }, 0);
             }
         }
     }, []);
+
+    useEffect(() => {
+        initializeCurrency();
+    }, [initializeCurrency]);
 
     const setCurrency = (newCurrency: Currency) => {
         setCurrencyState(newCurrency);
