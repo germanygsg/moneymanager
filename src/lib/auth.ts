@@ -1,22 +1,10 @@
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { compare } from 'bcryptjs';
+import { PrismaClient } from '@prisma/client';
 
-let prisma: any = null;
-
-// Dynamically import prisma only when needed
-async function getPrismaClient() {
-  if (!prisma) {
-    try {
-      const { prisma: prismaClient } = await import('@/lib/prisma');
-      prisma = prismaClient;
-    } catch (error) {
-      console.error('Failed to load Prisma client:', error);
-      return null;
-    }
-  }
-  return prisma;
-}
+// Create a singleton Prisma instance
+const prisma = new PrismaClient();
 
 export const authOptions: NextAuthOptions = {
     providers: [
@@ -31,36 +19,26 @@ export const authOptions: NextAuthOptions = {
                     return null;
                 }
 
-                try {
-                    const prismaClient = await getPrismaClient();
-                    if (!prismaClient) {
-                        throw new Error('Database not available');
-                    }
+                const user = await prisma.user.findUnique({
+                    where: {
+                        username: credentials.username,
+                    },
+                });
 
-                    const user = await prismaClient.user.findUnique({
-                        where: {
-                            username: credentials.username,
-                        },
-                    });
-
-                    if (!user) {
-                        return null;
-                    }
-
-                    const isPasswordValid = await compare(credentials.password, user.password);
-
-                    if (!isPasswordValid) {
-                        return null;
-                    }
-
-                    return {
-                        id: user.id,
-                        username: user.username,
-                    };
-                } catch (error) {
-                    console.error('Authorization error:', error);
+                if (!user) {
                     return null;
                 }
+
+                const isPasswordValid = await compare(credentials.password, user.password);
+
+                if (!isPasswordValid) {
+                    return null;
+                }
+
+                return {
+                    id: user.id,
+                    username: user.username,
+                };
             },
         }),
     ],
