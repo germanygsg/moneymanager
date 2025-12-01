@@ -22,7 +22,7 @@ export async function POST() {
     return NextResponse.json({
       message: 'Database initialized successfully',
       stdout: stdout,
-      stderr: stderr as string,
+      stderr: typeof stderr === 'string' ? stderr : String(stderr),
       status: 'success'
     });
 
