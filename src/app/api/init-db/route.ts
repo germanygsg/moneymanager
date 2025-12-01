@@ -23,7 +23,7 @@ export async function POST() {
       message: 'Database initialized successfully',
       stdout: stdout,
       stderr: (stderr as string)
-    });
+    } as any);
 
   } catch (error) {
     console.error('Database initialization failed:', error);
