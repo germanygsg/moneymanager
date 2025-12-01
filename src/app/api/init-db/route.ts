@@ -19,11 +19,10 @@ export async function POST() {
     console.log('Database push stdout:', stdout);
     console.log('Database tables created successfully');
 
-    return NextResponse.json({
-      message: 'Database initialized successfully',
-      stdout: stdout,
-      status: 'success'
-    });
+    return NextResponse.json(
+      { error: 'Database initialization failed', message: 'Database initialized successfully' },
+      { status: 500 }
+    );
 
   } catch (error) {
     console.error('Database initialization failed:', error);
