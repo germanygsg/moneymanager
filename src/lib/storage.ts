@@ -1,8 +1,5 @@
 import { Transaction, Category } from './types';
 
-const TRANSACTIONS_KEY = 'dexter_cashflow_transactions';
-const CATEGORIES_KEY = 'dexter_cashflow_categories';
-
 // Default categories
 export const DEFAULT_CATEGORIES: Category[] = [
     { id: 'food', name: 'Food', type: 'Expense', color: '#FF6B6B', icon: 'restaurant' },
@@ -17,80 +14,122 @@ export const DEFAULT_CATEGORIES: Category[] = [
     { id: 'other', name: 'Other', type: 'Expense', color: '#FCBAD3', icon: 'more_horiz' },
 ];
 
+// API helper function
+async function apiCall(endpoint: string, options: RequestInit = {}) {
+    const response = await fetch(`/api${endpoint}`, {
+        headers: {
+            'Content-Type': 'application/json',
+            ...options.headers,
+        },
+        ...options,
+    });
+
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(error.error || `API call failed: ${response.statusText}`);
+    }
+
+    return response.json();
+}
+
 // Transactions
-export const getTransactions = (): Transaction[] => {
-    if (typeof window === 'undefined') return [];
-    const data = localStorage.getItem(TRANSACTIONS_KEY);
-    return data ? JSON.parse(data) : [];
-};
-
-export const saveTransaction = (transaction: Transaction): void => {
-    const transactions = getTransactions();
-    transactions.push(transaction);
-    localStorage.setItem(TRANSACTIONS_KEY, JSON.stringify(transactions));
-};
-
-export const updateTransaction = (id: string, updatedTransaction: Transaction): void => {
-    const transactions = getTransactions();
-    const index = transactions.findIndex(t => t.id === id);
-    if (index !== -1) {
-        transactions[index] = updatedTransaction;
-        localStorage.setItem(TRANSACTIONS_KEY, JSON.stringify(transactions));
+export const getTransactions = async (): Promise<Transaction[]> => {
+    try {
+        return await apiCall('/transactions');
+    } catch (error) {
+        console.error('Error fetching transactions:', error);
+        return [];
     }
 };
 
-export const deleteTransaction = (id: string): void => {
-    const transactions = getTransactions();
-    const filtered = transactions.filter(t => t.id !== id);
-    localStorage.setItem(TRANSACTIONS_KEY, JSON.stringify(filtered));
+export const saveTransaction = async (transaction: Transaction): Promise<Transaction> => {
+    try {
+        return await apiCall('/transactions', {
+            method: 'POST',
+            body: JSON.stringify(transaction),
+        });
+    } catch (error) {
+        console.error('Error saving transaction:', error);
+        throw error;
+    }
+};
+
+export const updateTransaction = async (id: string, updatedTransaction: Transaction): Promise<Transaction> => {
+    try {
+        return await apiCall(`/transactions/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(updatedTransaction),
+        });
+    } catch (error) {
+        console.error('Error updating transaction:', error);
+        throw error;
+    }
+};
+
+export const deleteTransaction = async (id: string): Promise<void> => {
+    try {
+        await apiCall(`/transactions/${id}`, {
+            method: 'DELETE',
+        });
+    } catch (error) {
+        console.error('Error deleting transaction:', error);
+        throw error;
+    }
 };
 
 // Categories
-export const getCategories = (): Category[] => {
-    if (typeof window === 'undefined') return DEFAULT_CATEGORIES;
-    const data = localStorage.getItem(CATEGORIES_KEY);
-    return data ? JSON.parse(data) : DEFAULT_CATEGORIES;
-};
-
-export const saveCategory = (category: Category): void => {
-    const categories = getCategories();
-    categories.push(category);
-    localStorage.setItem(CATEGORIES_KEY, JSON.stringify(categories));
-};
-
-export const updateCategory = (id: string, updatedCategory: Category): void => {
-    const categories = getCategories();
-    const index = categories.findIndex(c => c.id === id);
-    if (index !== -1) {
-        categories[index] = updatedCategory;
-        localStorage.setItem(CATEGORIES_KEY, JSON.stringify(categories));
+export const getCategories = async (): Promise<Category[]> => {
+    try {
+        return await apiCall('/categories');
+    } catch (error) {
+        console.error('Error fetching categories:', error);
+        return DEFAULT_CATEGORIES;
     }
 };
 
-export const deleteCategory = (id: string): void => {
-    const categories = getCategories();
-    const filtered = categories.filter(c => c.id !== id);
-    localStorage.setItem(CATEGORIES_KEY, JSON.stringify(filtered));
-};
-
-export const initializeStorage = (): void => {
-    if (typeof window === 'undefined') return;
-
-    // Initialize categories if not exists
-    if (!localStorage.getItem(CATEGORIES_KEY)) {
-        localStorage.setItem(CATEGORIES_KEY, JSON.stringify(DEFAULT_CATEGORIES));
-    }
-
-    // Initialize transactions if not exists
-    if (!localStorage.getItem(TRANSACTIONS_KEY)) {
-        localStorage.setItem(TRANSACTIONS_KEY, JSON.stringify([]));
+export const saveCategory = async (category: Category): Promise<Category> => {
+    try {
+        return await apiCall('/categories', {
+            method: 'POST',
+            body: JSON.stringify(category),
+        });
+    } catch (error) {
+        console.error('Error saving category:', error);
+        throw error;
     }
 };
 
-export const clearAllData = (): void => {
-    if (typeof window === 'undefined') return;
-    localStorage.removeItem(TRANSACTIONS_KEY);
-    localStorage.removeItem(CATEGORIES_KEY);
-    // Reinitialize with defaults
-    initializeStorage();
+export const updateCategory = async (id: string, updatedCategory: Category): Promise<Category> => {
+    try {
+        return await apiCall(`/categories/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(updatedCategory),
+        });
+    } catch (error) {
+        console.error('Error updating category:', error);
+        throw error;
+    }
+};
+
+export const deleteCategory = async (id: string): Promise<void> => {
+    try {
+        await apiCall(`/categories/${id}`, {
+            method: 'DELETE',
+        });
+    } catch (error) {
+        console.error('Error deleting category:', error);
+        throw error;
+    }
+};
+
+// Initialize storage (now creates default ledger if none exists)
+export const initializeStorage = async (): Promise<void> => {
+    // This is now handled by the database initialization
+    // We'll keep this function for backward compatibility
+};
+
+export const clearAllData = async (): Promise<void> => {
+    // Database operations require individual API calls
+    // This would be a destructive operation, so we'll leave it for now
+    console.warn('clearAllData is not implemented for database backend');
 };

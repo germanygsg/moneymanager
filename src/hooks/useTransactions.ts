@@ -11,7 +11,6 @@ import {
     saveCategory,
     updateCategory,
     deleteCategory,
-    initializeStorage,
     clearAllData,
 } from '@/lib/storage';
 import {
@@ -26,56 +25,106 @@ export const useTransactions = () => {
     const [categories, setCategories] = useState<Category[]>([]);
     const [filters, setFilters] = useState<FilterOptions>({ type: 'All' });
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    // Initialize data from localStorage
-    useEffect(() => {
-        initializeStorage();
-        const loadedTransactions = getTransactions();
-        const loadedCategories = getCategories();
-
-        const timer = setTimeout(() => {
+    // Load data from database
+    const loadData = useCallback(async () => {
+        try {
+            setIsLoading(true);
+            setError(null);
+            const [loadedTransactions, loadedCategories] = await Promise.all([
+                getTransactions(),
+                getCategories()
+            ]);
             setTransactions(loadedTransactions);
             setCategories(loadedCategories);
+        } catch (err) {
+            console.error('Error loading data:', err);
+            setError(err instanceof Error ? err.message : 'Failed to load data');
+        } finally {
             setIsLoading(false);
-        }, 0);
-
-        return () => clearTimeout(timer);
+        }
     }, []);
 
+    // Initialize data on mount
+    useEffect(() => {
+        loadData();
+    }, [loadData]);
+
     // Add transaction
-    const addTransaction = useCallback((transaction: Transaction) => {
-        saveTransaction(transaction);
-        setTransactions(getTransactions());
+    const addTransaction = useCallback(async (transaction: Transaction) => {
+        try {
+            const newTransaction = await saveTransaction(transaction);
+            setTransactions(prev => [newTransaction, ...prev]);
+        } catch (err) {
+            console.error('Error adding transaction:', err);
+            setError(err instanceof Error ? err.message : 'Failed to add transaction');
+            throw err;
+        }
     }, []);
 
     // Update transaction
-    const editTransaction = useCallback((id: string, transaction: Transaction) => {
-        updateTransaction(id, transaction);
-        setTransactions(getTransactions());
+    const editTransaction = useCallback(async (id: string, transaction: Transaction) => {
+        try {
+            const updatedTransaction = await updateTransaction(id, transaction);
+            setTransactions(prev =>
+                prev.map(t => t.id === id ? updatedTransaction : t)
+            );
+        } catch (err) {
+            console.error('Error updating transaction:', err);
+            setError(err instanceof Error ? err.message : 'Failed to update transaction');
+            throw err;
+        }
     }, []);
 
     // Delete transaction
-    const removeTransaction = useCallback((id: string) => {
-        deleteTransaction(id);
-        setTransactions(getTransactions());
+    const removeTransaction = useCallback(async (id: string) => {
+        try {
+            await deleteTransaction(id);
+            setTransactions(prev => prev.filter(t => t.id !== id));
+        } catch (err) {
+            console.error('Error deleting transaction:', err);
+            setError(err instanceof Error ? err.message : 'Failed to delete transaction');
+            throw err;
+        }
     }, []);
 
     // Add category
-    const addCategory = useCallback((category: Category) => {
-        saveCategory(category);
-        setCategories(getCategories());
+    const addCategory = useCallback(async (category: Category) => {
+        try {
+            const newCategory = await saveCategory(category);
+            setCategories(prev => [newCategory, ...prev]);
+        } catch (err) {
+            console.error('Error adding category:', err);
+            setError(err instanceof Error ? err.message : 'Failed to add category');
+            throw err;
+        }
     }, []);
 
     // Update category
-    const editCategory = useCallback((id: string, category: Category) => {
-        updateCategory(id, category);
-        setCategories(getCategories());
+    const editCategory = useCallback(async (id: string, category: Category) => {
+        try {
+            const updatedCategory = await updateCategory(id, category);
+            setCategories(prev =>
+                prev.map(c => c.id === id ? updatedCategory : c)
+            );
+        } catch (err) {
+            console.error('Error updating category:', err);
+            setError(err instanceof Error ? err.message : 'Failed to update category');
+            throw err;
+        }
     }, []);
 
     // Delete category
-    const removeCategory = useCallback((id: string) => {
-        deleteCategory(id);
-        setCategories(getCategories());
+    const removeCategory = useCallback(async (id: string) => {
+        try {
+            await deleteCategory(id);
+            setCategories(prev => prev.filter(c => c.id !== id));
+        } catch (err) {
+            console.error('Error deleting category:', err);
+            setError(err instanceof Error ? err.message : 'Failed to delete category');
+            throw err;
+        }
     }, []);
 
     // Update filters
@@ -88,11 +137,25 @@ export const useTransactions = () => {
         setFilters({ type: 'All' });
     }, []);
 
+    // Refresh data
+    const refreshData = useCallback(() => {
+        loadData();
+    }, [loadData]);
+
     // Clear all data
-    const clearData = useCallback(() => {
-        clearAllData();
-        setTransactions(getTransactions());
-        setCategories(getCategories());
+    const clearData = useCallback(async () => {
+        try {
+            await clearAllData();
+            await loadData();
+        } catch (err) {
+            console.error('Error clearing data:', err);
+            setError(err instanceof Error ? err.message : 'Failed to clear data');
+        }
+    }, [loadData]);
+
+    // Clear error
+    const clearError = useCallback(() => {
+        setError(null);
     }, []);
 
     // Computed values
@@ -117,6 +180,7 @@ export const useTransactions = () => {
         expensesByCategory,
         incomeByCategory,
         isLoading,
+        error,
         addTransaction,
         editTransaction,
         removeTransaction,
@@ -126,5 +190,7 @@ export const useTransactions = () => {
         updateFilters,
         clearFilters,
         clearData,
+        refreshData,
+        clearError,
     };
 };

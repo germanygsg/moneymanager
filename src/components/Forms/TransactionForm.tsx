@@ -23,7 +23,7 @@ import { useCurrency } from '@/contexts/CurrencyContext';
 
 const transactionSchema = z.object({
     date: z.string().min(1, 'Date is required'),
-    category: z.string().min(1, 'Category is required'),
+    categoryId: z.string().min(1, 'Category is required'),
     description: z.string().min(1, 'Description is required'),
     amount: z.number().positive('Amount must be positive'),
     type: z.enum(['Income', 'Expense']),
@@ -56,7 +56,7 @@ export default function TransactionForm({
         resolver: zodResolver(transactionSchema),
         defaultValues: {
             date: new Date().toISOString().split('T')[0],
-            category: '',
+            categoryId: '',
             description: '',
             amount: 0,
             type: 'Expense',
@@ -76,7 +76,7 @@ export default function TransactionForm({
         if (editTransaction) {
             reset({
                 date: editTransaction.date,
-                category: editTransaction.category,
+                categoryId: editTransaction.categoryId,
                 description: editTransaction.description,
                 amount: editTransaction.amount,
                 type: editTransaction.type,
@@ -84,7 +84,7 @@ export default function TransactionForm({
         } else {
             reset({
                 date: new Date().toISOString().split('T')[0],
-                category: '',
+                categoryId: '',
                 description: '',
                 amount: 0,
                 type: 'Expense',
@@ -140,21 +140,21 @@ export default function TransactionForm({
                         />
 
                         <Controller
-                            name="category"
+                            name="categoryId"
                             control={control}
                             render={({ field }) => (
-                                <FormControl fullWidth error={!!errors.category}>
+                                <FormControl fullWidth error={!!errors.categoryId}>
                                     <InputLabel>Category</InputLabel>
                                     <Select {...field} label="Category">
                                         {filteredCategories.map((cat) => (
-                                            <MenuItem key={cat.id} value={cat.name}>
+                                            <MenuItem key={cat.id} value={cat.id}>
                                                 {cat.name}
                                             </MenuItem>
                                         ))}
                                     </Select>
-                                    {errors.category && (
+                                    {errors.categoryId && (
                                         <Box sx={{ color: 'error.main', fontSize: '0.75rem', mt: 0.5, ml: 2 }}>
-                                            {errors.category.message}
+                                            {errors.categoryId.message}
                                         </Box>
                                     )}
                                 </FormControl>
@@ -196,6 +196,7 @@ export default function TransactionForm({
                                 />
                             )}
                         />
+
                     </Box>
                 </DialogContent>
                 <DialogActions>
