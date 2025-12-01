@@ -32,8 +32,8 @@ export async function GET() {
         });
 
         const allLedgerIds = [
-            ...userLedgers.map(ledger => ledger.id),
-            ...sharedLedgers.map(lu => lu.ledgerId)
+            ...userLedgers.map((ledger: any) => ledger.id),
+            ...sharedLedgers.map((lu: any) => lu.ledgerId)
         ];
 
         if (allLedgerIds.length === 0) {
@@ -55,7 +55,7 @@ export async function GET() {
         });
 
         // Format transactions to match frontend structure
-        const formattedTransactions = transactions.map(transaction => ({
+        const formattedTransactions = transactions.map((transaction: any) => ({
             id: transaction.id,
             description: transaction.description,
             amount: transaction.amount,

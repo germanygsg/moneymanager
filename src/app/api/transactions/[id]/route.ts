@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 // PUT /api/transactions/[id] - Update a transaction
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const session = await getServerSession(authOptions);
 
@@ -20,9 +20,10 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         }
 
         // First verify user has access to this transaction
+        const { id } = await params;
         const existingTransaction = await prisma.transaction.findFirst({
             where: {
-                id: params.id,
+                id,
                 ledger: {
                     OR: [
                         { ownerId: session.user.id },
@@ -59,7 +60,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
         const updatedTransaction = await prisma.transaction.update({
             where: {
-                id: params.id
+                id
             },
             data: {
                 description,
@@ -95,7 +96,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 }
 
 // DELETE /api/transactions/[id] - Delete a transaction
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const session = await getServerSession(authOptions);
 
@@ -104,9 +105,10 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
         }
 
         // First verify user has access to this transaction
+        const { id } = await params;
         const existingTransaction = await prisma.transaction.findFirst({
             where: {
-                id: params.id,
+                id,
                 ledger: {
                     OR: [
                         { ownerId: session.user.id },
@@ -128,7 +130,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
         await prisma.transaction.delete({
             where: {
-                id: params.id
+                id
             }
         });
 

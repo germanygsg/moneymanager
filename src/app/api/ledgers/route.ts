@@ -64,13 +64,13 @@ export async function GET() {
         });
 
         // Format the response
-        const formattedLedgers = userLedgers.map(ledger => ({
+        const formattedLedgers = userLedgers.map((ledger: any) => ({
             id: ledger.id,
             name: ledger.name,
             currency: ledger.currency,
             ownerId: ledger.ownerId,
             isOwner: true,
-            categories: ledger.categories.map(cat => ({
+            categories: ledger.categories.map((cat: any) => ({
                 id: cat.id,
                 name: cat.name,
                 type: cat.type,
@@ -78,21 +78,21 @@ export async function GET() {
                 icon: cat.icon,
                 ledgerId: cat.ledgerId
             })),
-            sharedWith: ledger.sharedWith.map(lu => ({
+            sharedWith: ledger.sharedWith.map((lu: any) => ({
                 userId: lu.userId,
                 username: lu.user.username,
                 role: lu.role
             }))
         }));
 
-        const formattedSharedLedgers = sharedLedgers.map(lu => ({
+        const formattedSharedLedgers = sharedLedgers.map((lu: any) => ({
             id: lu.ledger.id,
             name: lu.ledger.name,
             currency: lu.ledger.currency,
             ownerId: lu.ledger.ownerId,
             isOwner: false,
             role: lu.role,
-            categories: lu.ledger.categories.map(cat => ({
+            categories: lu.ledger.categories.map((cat: any) => ({
                 id: cat.id,
                 name: cat.name,
                 type: cat.type,
@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
                         name: cat.name,
                         type: cat.type,
                         color: cat.color,
-                        icon: cat.icon
+                        icon: cat.icon || ''
                     }))
                 }
             },
@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
             currency: ledger.currency,
             ownerId: ledger.ownerId,
             isOwner: true,
-            categories: ledger.categories.map(cat => ({
+            categories: ledger.categories.map((cat: any) => ({
                 id: cat.id,
                 name: cat.name,
                 type: cat.type,

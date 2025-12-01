@@ -1,10 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import type { NextRequest } from 'next/server';
 
 // GET /api/user/ledger - Get the user's first ledger
 export async function GET() {
@@ -57,7 +54,7 @@ export async function GET() {
             id: userLedger.id,
             name: userLedger.name,
             currency: userLedger.currency,
-            categories: userLedger.categories.map(cat => ({
+            categories: userLedger.categories.map((cat: any) => ({
                 id: cat.id,
                 name: cat.name,
                 type: cat.type,

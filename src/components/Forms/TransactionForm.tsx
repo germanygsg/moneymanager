@@ -76,7 +76,7 @@ export default function TransactionForm({
         if (editTransaction) {
             reset({
                 date: editTransaction.date,
-                categoryId: editTransaction.categoryId,
+                categoryId: editTransaction.category,
                 description: editTransaction.description,
                 amount: editTransaction.amount,
                 type: editTransaction.type,
@@ -95,7 +95,11 @@ export default function TransactionForm({
     const handleFormSubmit = (data: TransactionFormData) => {
         const transaction: Transaction = {
             id: editTransaction?.id || generateId(),
-            ...data,
+            date: data.date,
+            category: data.categoryId,
+            description: data.description,
+            amount: data.amount,
+            type: data.type,
         };
         onSubmit(transaction);
         onClose();
