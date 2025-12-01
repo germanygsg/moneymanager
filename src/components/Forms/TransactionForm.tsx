@@ -27,6 +27,8 @@ const transactionSchema = z.object({
     description: z.string().min(1, 'Description is required'),
     amount: z.number().positive('Amount must be positive'),
     type: z.enum(['Income', 'Expense']),
+    note: z.string().optional(), // Optional note field
+    ledgerId: z.string().optional(), // Optional ledger field
 });
 
 type TransactionFormData = z.infer<typeof transactionSchema>;
@@ -93,13 +95,15 @@ export default function TransactionForm({
     }, [editTransaction, reset, open]);
 
     const handleFormSubmit = (data: TransactionFormData) => {
-        const transaction: Transaction = {
+        const transaction: any = {
             id: editTransaction?.id || generateId(),
             date: data.date,
-            category: data.categoryId,
             description: data.description,
             amount: data.amount,
             type: data.type,
+            note: data.note || '', // Use note from form or default to empty
+            categoryId: data.categoryId,
+            ledgerId: data.ledgerId // Pass ledgerId if provided
         };
         onSubmit(transaction);
         onClose();
@@ -201,6 +205,21 @@ export default function TransactionForm({
                             )}
                         />
 
+                        <Controller
+                            name="note"
+                            control={control}
+                            render={({ field }) => (
+                                <TextField
+                                    {...field}
+                                    fullWidth
+                                    label="Note (Optional)"
+                                    multiline
+                                    rows={2}
+                                    error={!!errors.note}
+                                    helperText={errors.note?.message}
+                                />
+                            )}
+                        />
                     </Box>
                 </DialogContent>
                 <DialogActions>
