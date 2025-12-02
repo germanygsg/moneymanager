@@ -47,7 +47,23 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         initializeCurrency();
-    }, [initializeCurrency]);
+
+        // Listen for ledger changes and update currency accordingly
+        const handleLedgerChange = (event: CustomEvent) => {
+            const ledger = event.detail;
+            if (ledger?.currency) {
+                const ledgerCurrency = CURRENCIES.find(c => c.code === ledger.currency);
+                if (ledgerCurrency && ledgerCurrency.code !== currency.code) {
+                    setCurrencyState(ledgerCurrency);
+                }
+            }
+        };
+
+        window.addEventListener('ledgerChanged', handleLedgerChange as EventListener);
+        return () => {
+            window.removeEventListener('ledgerChanged', handleLedgerChange as EventListener);
+        };
+    }, [initializeCurrency, currency.code]);
 
     const setCurrency = (newCurrency: Currency) => {
         setCurrencyState(newCurrency);

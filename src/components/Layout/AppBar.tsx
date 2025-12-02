@@ -13,6 +13,7 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
+import LedgerSwitcher from './LedgerSwitcher';
 
 interface AppBarProps {
     onAddClick: () => void;
@@ -42,6 +43,10 @@ export default function AppBar({ onAddClick, darkMode, onToggleDarkMode, showAdd
                     <Typography variant="h6" component="div" sx={{ fontWeight: 700 }}>
                         ONLINE LEDGER
                     </Typography>
+                </Box>
+
+                <Box sx={{ display: { xs: 'none', md: 'flex' }, mr: 2 }}>
+                    <LedgerSwitcher />
                 </Box>
 
                 <IconButton onClick={onToggleDarkMode} color="inherit" sx={{ mr: 1 }}>

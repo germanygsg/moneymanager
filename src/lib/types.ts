@@ -4,9 +4,12 @@ export interface Transaction {
   id: string;
   date: string; // ISO date string
   category: string;
+  categoryId?: string;
   description: string;
   amount: number;
   type: TransactionType;
+  ledgerId?: string;
+  note?: string;
 }
 
 export interface Category {
@@ -15,6 +18,7 @@ export interface Category {
   type: TransactionType;
   color: string;
   icon?: string;
+  ledgerId?: string;
 }
 
 export interface FilterOptions {

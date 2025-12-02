@@ -20,6 +20,7 @@ import { z } from 'zod';
 import { Transaction, Category } from '@/lib/types';
 import { generateId } from '@/lib/utils';
 import { useCurrency } from '@/contexts/CurrencyContext';
+import { useLedger } from '@/contexts/LedgerContext';
 
 const transactionSchema = z.object({
     date: z.string().min(1, 'Date is required'),
@@ -27,8 +28,8 @@ const transactionSchema = z.object({
     description: z.string().min(1, 'Description is required'),
     amount: z.number().positive('Amount must be positive'),
     type: z.enum(['Income', 'Expense']),
-    note: z.string().optional(), // Optional note field
-    ledgerId: z.string().optional(), // Optional ledger field
+    note: z.string().optional(),
+    ledgerId: z.string().optional(),
 });
 
 type TransactionFormData = z.infer<typeof transactionSchema>;
@@ -49,6 +50,7 @@ export default function TransactionForm({
     editTransaction,
 }: TransactionFormProps) {
     const { currency } = useCurrency();
+    const { currentLedger } = useLedger();
     const {
         control,
         handleSubmit,
@@ -62,6 +64,7 @@ export default function TransactionForm({
             description: '',
             amount: 0,
             type: 'Expense',
+            note: '',
         },
     });
 
@@ -78,10 +81,12 @@ export default function TransactionForm({
         if (editTransaction) {
             reset({
                 date: editTransaction.date,
-                categoryId: editTransaction.category,
+                categoryId: editTransaction.categoryId || editTransaction.category,
                 description: editTransaction.description,
                 amount: editTransaction.amount,
                 type: editTransaction.type,
+                note: editTransaction.note || '',
+                ledgerId: editTransaction.ledgerId,
             });
         } else {
             reset({
@@ -90,9 +95,11 @@ export default function TransactionForm({
                 description: '',
                 amount: 0,
                 type: 'Expense',
+                note: '',
+                ledgerId: currentLedger?.id,
             });
         }
-    }, [editTransaction, reset, open]);
+    }, [editTransaction, reset, open, currentLedger]);
 
     const handleFormSubmit = (data: TransactionFormData) => {
         const transaction: any = {
@@ -101,9 +108,9 @@ export default function TransactionForm({
             description: data.description,
             amount: data.amount,
             type: data.type,
-            note: data.note || '', // Use note from form or default to empty
+            note: data.note || '',
             categoryId: data.categoryId,
-            ledgerId: data.ledgerId // Pass ledgerId if provided
+            ledgerId: data.ledgerId || currentLedger?.id
         };
         onSubmit(transaction);
         onClose();
