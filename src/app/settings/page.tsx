@@ -37,6 +37,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import Layout from '@/components/Layout/Layout';
 import { useTransactions } from '@/hooks/useTransactions';
 import { useCurrency, CURRENCIES } from '@/contexts/CurrencyContext';
+import { useLedger } from '@/contexts/LedgerContext';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
@@ -52,6 +53,7 @@ export default function SettingsPage() {
     const router = useRouter();
     const { clearData, allTransactions, categories } = useTransactions();
     const { currency, setCurrency } = useCurrency();
+    const { currentLedger, refreshLedgers } = useLedger();
     const [openClearDialog, setOpenClearDialog] = useState(false);
     const [openInviteDialog, setOpenInviteDialog] = useState(false);
     const [inviteUsername, setInviteUsername] = useState('');
@@ -90,12 +92,39 @@ export default function SettingsPage() {
     };
 
 
-    const handleCurrencyChange = (event: SelectChangeEvent) => {
+    const handleCurrencyChange = async (event: SelectChangeEvent) => {
         const newCurrencyCode = event.target.value;
         const newCurrency = CURRENCIES.find(c => c.code === newCurrencyCode);
-        if (newCurrency) {
+        if (!newCurrency || !currentLedger) {
+            return;
+        }
+
+        try {
+            // Update the ledger's currency in the database
+            const response = await fetch(`/api/ledger/${currentLedger.id}/currency`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ currency: newCurrency.code }),
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                setSnackbar({ open: true, message: data.error || 'Failed to update currency', severity: 'error' });
+                return;
+            }
+
+            // Update local currency state
             setCurrency(newCurrency);
-            setSnackbar({ open: true, message: 'Currency updated successfully', severity: 'success' });
+
+            // Refresh ledgers to get updated currency for all users
+            await refreshLedgers();
+
+            setSnackbar({ open: true, message: 'Currency updated successfully for all users', severity: 'success' });
+        } catch (error) {
+            console.error('Error updating currency:', error);
+            setSnackbar({ open: true, message: 'An error occurred while updating currency', severity: 'error' });
         }
     };
 
