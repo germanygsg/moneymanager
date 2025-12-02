@@ -30,6 +30,7 @@ import {
 } from '@mui/icons-material';
 import Layout from '@/components/Layout/Layout';
 import { useTransactions } from '@/hooks/useTransactions';
+import { useLedger } from '@/contexts/LedgerContext';
 import { Category, TransactionType } from '@/lib/types';
 
 // Available Material Icons for categories
@@ -66,6 +67,7 @@ const COLOR_PALETTE = [
 
 export default function CategoriesPage() {
     const { categories, addCategory, editCategory, removeCategory } = useTransactions();
+    const { currentLedger } = useLedger();
     const [openDialog, setOpenDialog] = useState(false);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const [editingCategory, setEditingCategory] = useState<Category | null>(null);
@@ -112,12 +114,18 @@ export default function CategoriesPage() {
             return;
         }
 
+        if (!currentLedger) {
+            setSnackbar({ open: true, message: 'No ledger selected. Please select a ledger first.', severity: 'error' });
+            return;
+        }
+
         const categoryData: Category = {
             id: editingCategory?.id || `cat_${Date.now()}`,
             name: formData.name.trim(),
             type: formData.type,
             color: formData.color,
             icon: formData.icon,
+            ledgerId: currentLedger.id,
         };
 
         if (editingCategory) {

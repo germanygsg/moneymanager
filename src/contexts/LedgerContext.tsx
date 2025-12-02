@@ -29,7 +29,7 @@ export function LedgerProvider({ children }: { children: React.ReactNode }) {
     const [availableLedgers, setAvailableLedgers] = useState<Ledger[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    const fetchLedgers = useCallback(async () => {
+    const fetchLedgers = useCallback(async (emitEvent = false) => {
         try {
             setIsLoading(true);
             const response = await fetch('/api/ledgers');
@@ -46,6 +46,11 @@ export function LedgerProvider({ children }: { children: React.ReactNode }) {
                 if (ledgerToSet) {
                     setCurrentLedger(ledgerToSet);
                     localStorage.setItem('current_ledger_id', ledgerToSet.id);
+
+                    // Emit event if requested (for currency sync)
+                    if (emitEvent) {
+                        window.dispatchEvent(new CustomEvent('ledgerChanged', { detail: ledgerToSet }));
+                    }
                 }
             }
         } catch (error) {
@@ -71,7 +76,7 @@ export function LedgerProvider({ children }: { children: React.ReactNode }) {
     }, [availableLedgers]);
 
     const refreshLedgers = useCallback(async () => {
-        await fetchLedgers();
+        await fetchLedgers(true); // Emit event to notify about ledger changes (e.g., currency updates)
     }, [fetchLedgers]);
 
     return (
