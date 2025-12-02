@@ -28,46 +28,29 @@ const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined
 export function CurrencyProvider({ children }: { children: React.ReactNode }) {
     const [currency, setCurrencyState] = useState<Currency>(CURRENCIES[4]); // Default to IDR
 
-    const initializeCurrency = useCallback(() => {
-        const savedCurrencyCode = localStorage.getItem('preferred_currency');
-        if (savedCurrencyCode) {
-            const savedCurrency = CURRENCIES.find(c => c.code === savedCurrencyCode);
-            if (savedCurrency) {
-                setTimeout(() => {
-                    setCurrencyState(prev => {
-                        if (prev.code !== savedCurrency.code) {
-                            return savedCurrency;
-                        }
-                        return prev;
-                    });
-                }, 0);
-            }
-        }
-    }, []);
-
     useEffect(() => {
-        initializeCurrency();
-
         // Listen for ledger changes and update currency accordingly
-        const handleLedgerChange = (event: CustomEvent) => {
-            const ledger = event.detail;
+        const handleLedgerChange = (event: Event) => {
+            const customEvent = event as CustomEvent;
+            const ledger = customEvent.detail;
+
             if (ledger?.currency) {
                 const ledgerCurrency = CURRENCIES.find(c => c.code === ledger.currency);
-                if (ledgerCurrency && ledgerCurrency.code !== currency.code) {
+                if (ledgerCurrency) {
                     setCurrencyState(ledgerCurrency);
                 }
             }
         };
 
-        window.addEventListener('ledgerChanged', handleLedgerChange as EventListener);
+        window.addEventListener('ledgerChanged', handleLedgerChange);
+
         return () => {
-            window.removeEventListener('ledgerChanged', handleLedgerChange as EventListener);
+            window.removeEventListener('ledgerChanged', handleLedgerChange);
         };
-    }, [initializeCurrency, currency.code]);
+    }, []);
 
     const setCurrency = (newCurrency: Currency) => {
         setCurrencyState(newCurrency);
-        localStorage.setItem('preferred_currency', newCurrency.code);
     };
 
     const formatCurrency = (amount: number): string => {

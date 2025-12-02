@@ -37,15 +37,31 @@ export function LedgerProvider({ children }: { children: React.ReactNode }) {
                 const ledgers = await response.json();
                 setAvailableLedgers(ledgers);
 
-                // Set current ledger from localStorage or default to first ledger
-                const savedLedgerId = localStorage.getItem('current_ledger_id');
+                // Get user preferences from database
+                const prefsResponse = await fetch('/api/user/preferences');
+                let savedLedgerId: string | null = null;
+
+                if (prefsResponse.ok) {
+                    const prefs = await prefsResponse.json();
+                    savedLedgerId = prefs.currentLedgerId;
+                }
+
+                // Set current ledger from database preference or default to first ledger
                 const ledgerToSet = savedLedgerId
                     ? ledgers.find((l: Ledger) => l.id === savedLedgerId)
                     : ledgers[0];
 
                 if (ledgerToSet) {
                     setCurrentLedger(ledgerToSet);
-                    localStorage.setItem('current_ledger_id', ledgerToSet.id);
+
+                    // Save to database if it's different from saved preference
+                    if (ledgerToSet.id !== savedLedgerId) {
+                        await fetch('/api/user/preferences', {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ currentLedgerId: ledgerToSet.id }),
+                        });
+                    }
 
                     // Emit event if requested (for currency sync)
                     if (emitEvent) {
@@ -61,7 +77,7 @@ export function LedgerProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     useEffect(() => {
-        fetchLedgers();
+        fetchLedgers(true); // Emit event on initial load to sync currency
 
         // Poll for ledger updates every 10 seconds to sync changes across users
         const pollInterval = setInterval(() => {
@@ -71,11 +87,17 @@ export function LedgerProvider({ children }: { children: React.ReactNode }) {
         return () => clearInterval(pollInterval);
     }, [fetchLedgers]);
 
-    const switchLedger = useCallback((ledgerId: string) => {
+    const switchLedger = useCallback(async (ledgerId: string) => {
         const ledger = availableLedgers.find(l => l.id === ledgerId);
         if (ledger) {
             setCurrentLedger(ledger);
-            localStorage.setItem('current_ledger_id', ledger.id);
+
+            // Save to database
+            await fetch('/api/user/preferences', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ currentLedgerId: ledger.id }),
+            });
 
             // Trigger a custom event to notify other components
             window.dispatchEvent(new CustomEvent('ledgerChanged', { detail: ledger }));
