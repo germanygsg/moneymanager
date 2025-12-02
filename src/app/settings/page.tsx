@@ -347,13 +347,14 @@ export default function SettingsPage() {
                         <ListItem>
                             <ListItemText
                                 primary="Currency"
-                                secondary="Select your preferred currency"
+                                secondary="Currency for this ledger (affects all users)"
                             />
                             <FormControl sx={{ minWidth: 150 }}>
                                 <Select
                                     value={currency.code}
                                     onChange={handleCurrencyChange}
                                     size="small"
+                                    disabled={currentLedger?.role === 'viewer'}
                                 >
                                     {CURRENCIES.map((curr) => (
                                         <MenuItem key={curr.code} value={curr.code}>

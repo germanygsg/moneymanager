@@ -62,6 +62,13 @@ export function LedgerProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         fetchLedgers();
+
+        // Poll for ledger updates every 10 seconds to sync changes across users
+        const pollInterval = setInterval(() => {
+            fetchLedgers(true); // Emit event to sync currency changes
+        }, 10000); // 10 seconds
+
+        return () => clearInterval(pollInterval);
     }, [fetchLedgers]);
 
     const switchLedger = useCallback((ledgerId: string) => {
