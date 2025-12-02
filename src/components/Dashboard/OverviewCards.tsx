@@ -63,13 +63,28 @@ export default function OverviewCards({ summary }: OverviewCardsProps) {
                         overflow: 'hidden',
                     }}
                 >
-                    <CardContent>
+                    <CardContent sx={{ p: { xs: 2, sm: 3 }, '&:last-child': { pb: { xs: 2, sm: 3 } } }}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <Box>
-                                <Typography color="text.secondary" variant="body2" gutterBottom>
+                            <Box sx={{ minWidth: 0, flex: 1, mr: 1 }}>
+                                <Typography
+                                    color="text.secondary"
+                                    variant="body2"
+                                    gutterBottom
+                                    sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                                >
                                     {card.title}
                                 </Typography>
-                                <Typography variant="h5" component="div" fontWeight={700} sx={{ color: card.color }}>
+                                <Typography
+                                    variant="h5"
+                                    component="div"
+                                    fontWeight={700}
+                                    sx={{
+                                        color: card.color,
+                                        fontSize: 'clamp(1rem, 5vw, 1.5rem)',
+                                        wordBreak: 'break-word',
+                                        lineHeight: 1.2
+                                    }}
+                                >
                                     {card.value}
                                 </Typography>
                             </Box>
@@ -77,6 +92,9 @@ export default function OverviewCards({ summary }: OverviewCardsProps) {
                                 sx={{
                                     color: card.color,
                                     opacity: 0.8,
+                                    '& svg': {
+                                        fontSize: 'clamp(28px, 8vw, 40px)'
+                                    }
                                 }}
                             >
                                 {card.icon}

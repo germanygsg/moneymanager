@@ -102,7 +102,7 @@ export default function Home() {
           onClick={handleOpenForm}
           sx={{
             position: 'fixed',
-            bottom: 16,
+            bottom: 80, // Above bottom nav (56px) + spacing
             right: 16,
             display: { xs: 'flex', sm: 'none' },
           }}

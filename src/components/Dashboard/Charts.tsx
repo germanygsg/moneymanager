@@ -40,9 +40,18 @@ export default function Charts({
                     {totalIncome > 0 || totalExpense > 0 ? (
                         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
                             <PieChart
-                                series={[{ data: pieData }]}
+                                series={[{
+                                    data: pieData,
+                                    highlightScope: { fade: 'global', highlight: 'item' },
+                                    faded: { innerRadius: 30, additionalRadius: -30, color: 'gray' },
+                                }]}
                                 height={250}
-                                width={400}
+                                slotProps={{
+                                    legend: {
+                                        position: { vertical: 'bottom', horizontal: 'center' },
+                                    },
+                                }}
+                                margin={{ top: 10, bottom: 60, left: 10, right: 10 }}
                             />
                         </Box>
                     ) : (

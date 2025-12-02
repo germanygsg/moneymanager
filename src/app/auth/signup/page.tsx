@@ -113,7 +113,7 @@ export default function SignUpPage() {
                     sx={{
                         p: 4,
                         borderRadius: 4,
-                        background: 'rgba(255, 255, 255, 0.95)',
+                        bgcolor: 'background.paper',
                         backdropFilter: 'blur(10px)',
                     }}
                 >
