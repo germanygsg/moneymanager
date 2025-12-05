@@ -13,7 +13,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         }
 
         const body = await request.json();
-        const { description, amount, type, date, note, categoryId } = body;
+        const { description, amount, type, date, note, categoryId, receiptImage } = body;
 
         if (!description || !amount || !type || !date || !categoryId) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -68,7 +68,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
                 type,
                 date: new Date(date),
                 note,
-                categoryId
+                categoryId,
+                receiptImage: receiptImage !== undefined ? receiptImage : undefined,
             },
             include: {
                 category: true
@@ -85,7 +86,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
             note: updatedTransaction.note,
             category: updatedTransaction.category.name,
             categoryId: updatedTransaction.category.id,
-            ledgerId: updatedTransaction.ledgerId
+            ledgerId: updatedTransaction.ledgerId,
+            receiptImage: updatedTransaction.receiptImage,
         };
 
         return NextResponse.json(formattedTransaction);

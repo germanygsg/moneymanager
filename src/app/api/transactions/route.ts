@@ -64,7 +64,8 @@ export async function GET() {
             note: transaction.note,
             category: transaction.category.name,
             categoryId: transaction.category.id,
-            ledgerId: transaction.ledgerId
+            ledgerId: transaction.ledgerId,
+            receiptImage: transaction.receiptImage,
         }));
 
         return NextResponse.json(formattedTransactions);
@@ -84,7 +85,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { description, amount, type, date, note, categoryId, ledgerId } = body;
+        const { description, amount, type, date, note, categoryId, ledgerId, receiptImage } = body;
 
         if (!description || !amount || !type || !date || !categoryId) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -153,7 +154,8 @@ export async function POST(request: NextRequest) {
                 date: new Date(date),
                 note,
                 categoryId,
-                ledgerId: targetLedgerId
+                ledgerId: targetLedgerId,
+                receiptImage: receiptImage || null,
             },
             include: {
                 category: true
@@ -170,7 +172,8 @@ export async function POST(request: NextRequest) {
             note: transaction.note,
             category: transaction.category.name,
             categoryId: transaction.category.id,
-            ledgerId: transaction.ledgerId
+            ledgerId: transaction.ledgerId,
+            receiptImage: transaction.receiptImage,
         };
 
         return NextResponse.json(formattedTransaction);

@@ -10,6 +10,7 @@ export interface Transaction {
   type: TransactionType;
   ledgerId?: string;
   note?: string;
+  receiptImage?: string; // Base64 encoded compressed image
 }
 
 export interface Category {

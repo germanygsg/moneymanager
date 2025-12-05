@@ -79,16 +79,17 @@ model Category {
 
 // Transaction model
 model Transaction {
-  id          String   @id @default(cuid())
-  description String
-  amount      Float
-  type        String // Income or Expense
-  categoryId  String
-  ledgerId    String
-  date        DateTime @default(now())
-  note        String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(cuid())
+  description  String
+  amount       Float
+  type         String // Income or Expense
+  categoryId   String
+  ledgerId     String
+  date         DateTime @default(now())
+  note         String?
+  receiptImage String?  @db.Text // Base64 encoded compressed receipt image
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   // Relations
   category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
@@ -99,3 +100,4 @@ model Transaction {
   @@index([date])
   @@index([type])
 }
+

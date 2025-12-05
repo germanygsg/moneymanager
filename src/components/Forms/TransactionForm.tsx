@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
     Dialog,
     DialogTitle,
@@ -13,7 +13,16 @@ import {
     InputLabel,
     Select,
     Box,
+    Typography,
+    IconButton,
+    Paper,
+    CircularProgress,
 } from '@mui/material';
+import {
+    CloudUpload as UploadIcon,
+    Delete as DeleteIcon,
+    Receipt as ReceiptIcon,
+} from '@mui/icons-material';
 import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -21,6 +30,7 @@ import { Transaction, Category } from '@/lib/types';
 import { generateId } from '@/lib/utils';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { useLedger } from '@/contexts/LedgerContext';
+import { compressImage, formatFileSize, getBase64Size, isValidImageFile } from '@/lib/imageCompression';
 
 const transactionSchema = z.object({
     date: z.string().min(1, 'Date is required'),
@@ -51,6 +61,11 @@ export default function TransactionForm({
 }: TransactionFormProps) {
     const { currency } = useCurrency();
     const { currentLedger } = useLedger();
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [receiptImage, setReceiptImage] = useState<string | null>(null);
+    const [isCompressing, setIsCompressing] = useState(false);
+    const [imageError, setImageError] = useState<string | null>(null);
+
     const {
         control,
         handleSubmit,
@@ -88,6 +103,7 @@ export default function TransactionForm({
                 note: editTransaction.note || '',
                 ledgerId: editTransaction.ledgerId,
             });
+            setReceiptImage(editTransaction.receiptImage || null);
         } else {
             reset({
                 date: new Date().toISOString().split('T')[0],
@@ -98,8 +114,60 @@ export default function TransactionForm({
                 note: '',
                 ledgerId: currentLedger?.id,
             });
+            setReceiptImage(null);
         }
+        setImageError(null);
     }, [editTransaction, reset, open, currentLedger]);
+
+    const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!isValidImageFile(file)) {
+            setImageError('Please select a valid image file (JPEG, PNG, or WebP)');
+            return;
+        }
+
+        // Validate file size (max 10MB before compression)
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        if (file.size > maxSize) {
+            setImageError('Image file is too large. Maximum size is 10MB.');
+            return;
+        }
+
+        setIsCompressing(true);
+        setImageError(null);
+
+        try {
+            // Compress the image
+            const compressedImage = await compressImage(file, {
+                maxWidth: 800,
+                maxHeight: 800,
+                quality: 0.7,
+                outputFormat: 'image/jpeg',
+            });
+
+            setReceiptImage(compressedImage);
+        } catch (error) {
+            console.error('Error compressing image:', error);
+            setImageError('Failed to process image. Please try another file.');
+        } finally {
+            setIsCompressing(false);
+            // Reset input so same file can be selected again
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+        }
+    };
+
+    const handleRemoveImage = () => {
+        setReceiptImage(null);
+        setImageError(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
 
     const handleFormSubmit = (data: TransactionFormData) => {
         const transaction: any = {
@@ -110,7 +178,8 @@ export default function TransactionForm({
             type: data.type,
             note: data.note || '',
             categoryId: data.categoryId,
-            ledgerId: data.ledgerId || currentLedger?.id
+            ledgerId: data.ledgerId || currentLedger?.id,
+            receiptImage: receiptImage || undefined,
         };
         onSubmit(transaction);
         onClose();
@@ -227,11 +296,116 @@ export default function TransactionForm({
                                 />
                             )}
                         />
+
+                        {/* Receipt Image Upload Section */}
+                        <Box>
+                            <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.secondary' }}>
+                                Receipt Image (Optional)
+                            </Typography>
+
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/jpeg,image/jpg,image/png,image/webp"
+                                onChange={handleFileSelect}
+                                style={{ display: 'none' }}
+                                id="receipt-upload"
+                            />
+
+                            {!receiptImage ? (
+                                <Paper
+                                    variant="outlined"
+                                    sx={{
+                                        p: 3,
+                                        textAlign: 'center',
+                                        cursor: isCompressing ? 'wait' : 'pointer',
+                                        borderStyle: 'dashed',
+                                        borderColor: imageError ? 'error.main' : 'divider',
+                                        backgroundColor: 'action.hover',
+                                        transition: 'all 0.2s ease-in-out',
+                                        '&:hover': {
+                                            borderColor: 'primary.main',
+                                            backgroundColor: 'action.selected',
+                                        },
+                                    }}
+                                    onClick={() => !isCompressing && fileInputRef.current?.click()}
+                                >
+                                    {isCompressing ? (
+                                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                                            <CircularProgress size={32} />
+                                            <Typography variant="body2" color="text.secondary">
+                                                Compressing image...
+                                            </Typography>
+                                        </Box>
+                                    ) : (
+                                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                                            <UploadIcon sx={{ fontSize: 40, color: 'text.secondary' }} />
+                                            <Typography variant="body2" color="text.secondary">
+                                                Click to upload receipt image
+                                            </Typography>
+                                            <Typography variant="caption" color="text.disabled">
+                                                JPEG, PNG, WebP (max 10MB)
+                                            </Typography>
+                                        </Box>
+                                    )}
+                                </Paper>
+                            ) : (
+                                <Paper
+                                    variant="outlined"
+                                    sx={{
+                                        p: 2,
+                                        position: 'relative',
+                                    }}
+                                >
+                                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+                                        <Box
+                                            component="img"
+                                            src={receiptImage}
+                                            alt="Receipt preview"
+                                            sx={{
+                                                width: 100,
+                                                height: 100,
+                                                objectFit: 'cover',
+                                                borderRadius: 1,
+                                                border: '1px solid',
+                                                borderColor: 'divider',
+                                            }}
+                                        />
+                                        <Box sx={{ flex: 1 }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                                                <ReceiptIcon fontSize="small" color="primary" />
+                                                <Typography variant="body2" fontWeight={500}>
+                                                    Receipt Attached
+                                                </Typography>
+                                            </Box>
+                                            <Typography variant="caption" color="text.secondary" display="block">
+                                                Compressed size: {formatFileSize(getBase64Size(receiptImage))}
+                                            </Typography>
+                                            <Button
+                                                size="small"
+                                                startIcon={<DeleteIcon />}
+                                                onClick={handleRemoveImage}
+                                                color="error"
+                                                sx={{ mt: 1 }}
+                                            >
+                                                Remove
+                                            </Button>
+                                        </Box>
+                                    </Box>
+                                </Paper>
+                            )}
+
+                            {imageError && (
+                                <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
+                                    {imageError}
+                                </Typography>
+                            )}
+                        </Box>
                     </Box>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={onClose}>Cancel</Button>
-                    <Button type="submit" variant="contained">
+                    <Button type="submit" variant="contained" disabled={isCompressing}>
                         {editTransaction ? 'Update' : 'Add'}
                     </Button>
                 </DialogActions>

@@ -27,6 +27,7 @@ import {
     Stack,
     CircularProgress,
     SelectChangeEvent,
+    LinearProgress,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
@@ -34,6 +35,12 @@ import UploadIcon from '@mui/icons-material/Upload';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import LogoutIcon from '@mui/icons-material/Logout';
 import CloseIcon from '@mui/icons-material/Close';
+import ReceiptIcon from '@mui/icons-material/Receipt';
+import StorageIcon from '@mui/icons-material/Storage';
+import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+import CheckIcon from '@mui/icons-material/Check';
+import PersonIcon from '@mui/icons-material/Person';
+import GroupIcon from '@mui/icons-material/Group';
 import Layout from '@/components/Layout/Layout';
 import { useTransactions } from '@/hooks/useTransactions';
 import { useCurrency, CURRENCIES } from '@/contexts/CurrencyContext';
@@ -48,18 +55,28 @@ interface SharedUser {
     createdAt: string;
 }
 
+interface ReceiptStats {
+    totalReceipts: number;
+    totalSize: number;
+    formattedSize: string;
+}
+
 export default function SettingsPage() {
     const { data: session, status } = useSession();
     const router = useRouter();
     const { clearData, allTransactions, categories } = useTransactions();
     const { currency, setCurrency } = useCurrency();
-    const { currentLedger, refreshLedgers } = useLedger();
+    const { currentLedger, availableLedgers, switchLedger, refreshLedgers, isLoading: ledgerLoading } = useLedger();
     const [openClearDialog, setOpenClearDialog] = useState(false);
     const [openInviteDialog, setOpenInviteDialog] = useState(false);
+    const [openClearReceiptsDialog, setOpenClearReceiptsDialog] = useState(false);
     const [inviteUsername, setInviteUsername] = useState('');
     const [inviteLoading, setInviteLoading] = useState(false);
     const [sharedUsers, setSharedUsers] = useState<SharedUser[]>([]);
     const [loadingSharedUsers, setLoadingSharedUsers] = useState(false);
+    const [receiptStats, setReceiptStats] = useState<ReceiptStats | null>(null);
+    const [loadingReceiptStats, setLoadingReceiptStats] = useState(false);
+    const [clearingReceipts, setClearingReceipts] = useState(false);
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
 
     // Redirect if not authenticated
@@ -76,6 +93,13 @@ export default function SettingsPage() {
         }
     }, [session]);
 
+    // Load receipt stats when ledger changes
+    useEffect(() => {
+        if (session?.user && currentLedger) {
+            loadReceiptStats();
+        }
+    }, [session, currentLedger]);
+
     const loadSharedUsers = async () => {
         setLoadingSharedUsers(true);
         try {
@@ -88,6 +112,45 @@ export default function SettingsPage() {
             console.error('Error loading shared users:', error);
         } finally {
             setLoadingSharedUsers(false);
+        }
+    };
+
+    const loadReceiptStats = async () => {
+        setLoadingReceiptStats(true);
+        try {
+            const response = await fetch('/api/receipts/stats');
+            if (response.ok) {
+                const data = await response.json();
+                setReceiptStats(data);
+            }
+        } catch (error) {
+            console.error('Error loading receipt stats:', error);
+        } finally {
+            setLoadingReceiptStats(false);
+        }
+    };
+
+    const handleClearReceipts = async () => {
+        setClearingReceipts(true);
+        try {
+            const response = await fetch('/api/receipts/stats', {
+                method: 'DELETE',
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                setSnackbar({ open: true, message: data.error || 'Failed to clear receipts', severity: 'error' });
+            } else {
+                setSnackbar({ open: true, message: `Cleared ${data.clearedCount} receipt image(s)`, severity: 'success' });
+                loadReceiptStats(); // Refresh stats
+            }
+        } catch (error) {
+            console.error('Error clearing receipts:', error);
+            setSnackbar({ open: true, message: 'An error occurred', severity: 'error' });
+        } finally {
+            setClearingReceipts(false);
+            setOpenClearReceiptsDialog(false);
         }
     };
 
@@ -277,6 +340,126 @@ export default function SettingsPage() {
                     </Box>
                 </Paper>
 
+                {/* Ledger Switcher */}
+                <Paper sx={{ maxWidth: 600, mb: 3, p: 3 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                        <AccountBalanceIcon color="primary" />
+                        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                            Current Ledger
+                        </Typography>
+                    </Box>
+
+                    {ledgerLoading ? (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+                            <CircularProgress size={24} />
+                        </Box>
+                    ) : currentLedger ? (
+                        <Box>
+                            {/* Current Ledger Display */}
+                            <Box sx={{
+                                p: 2,
+                                mb: 2,
+                                bgcolor: 'primary.main',
+                                color: 'primary.contrastText',
+                                borderRadius: 2,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between'
+                            }}>
+                                <Box>
+                                    <Typography variant="body1" fontWeight={600}>
+                                        {currentLedger.name}
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                                        {currentLedger.currency}
+                                        {!currentLedger.isOwner && ` • Shared with you`}
+                                    </Typography>
+                                </Box>
+                                {!currentLedger.isOwner && (
+                                    <Chip
+                                        label={currentLedger.role}
+                                        size="small"
+                                        sx={{
+                                            bgcolor: 'rgba(255,255,255,0.2)',
+                                            color: 'inherit',
+                                            fontWeight: 500
+                                        }}
+                                    />
+                                )}
+                            </Box>
+
+                            {/* Other Ledgers */}
+                            {availableLedgers && availableLedgers.length > 1 && (
+                                <Box>
+                                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                        Switch to another ledger:
+                                    </Typography>
+                                    <Stack spacing={1}>
+                                        {availableLedgers
+                                            .filter(ledger => ledger.id !== currentLedger.id)
+                                            .map((ledger) => (
+                                                <Box
+                                                    key={ledger.id}
+                                                    onClick={() => switchLedger(ledger.id)}
+                                                    sx={{
+                                                        p: 2,
+                                                        borderRadius: 2,
+                                                        border: '1px solid',
+                                                        borderColor: 'divider',
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'space-between',
+                                                        transition: 'all 0.2s',
+                                                        '&:hover': {
+                                                            borderColor: 'primary.main',
+                                                            bgcolor: 'action.hover',
+                                                        }
+                                                    }}
+                                                >
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                                        {ledger.isOwner ? (
+                                                            <PersonIcon fontSize="small" color="action" />
+                                                        ) : (
+                                                            <GroupIcon fontSize="small" color="action" />
+                                                        )}
+                                                        <Box>
+                                                            <Typography variant="body2" fontWeight={500}>
+                                                                {ledger.name}
+                                                            </Typography>
+                                                            <Typography variant="caption" color="text.secondary">
+                                                                {ledger.currency}
+                                                                {!ledger.isOwner && ledger.owner && ` • Owned by ${ledger.owner.username}`}
+                                                            </Typography>
+                                                        </Box>
+                                                    </Box>
+                                                    {!ledger.isOwner && (
+                                                        <Chip
+                                                            label={ledger.role}
+                                                            size="small"
+                                                            variant="outlined"
+                                                            sx={{ height: 22, fontSize: '0.7rem' }}
+                                                        />
+                                                    )}
+                                                </Box>
+                                            ))}
+                                    </Stack>
+                                </Box>
+                            )}
+
+                            {availableLedgers && availableLedgers.length === 1 && (
+                                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 1 }}>
+                                    You have only one ledger. Invite users to collaborate or get invited to other ledgers.
+                                </Typography>
+                            )}
+                        </Box>
+                    ) : (
+                        <Typography variant="body2" color="text.secondary">
+                            No ledger available
+                        </Typography>
+                    )}
+                </Paper>
+
                 {/* Collaboration */}
                 <Paper sx={{ maxWidth: 600, mb: 3 }}>
                     <List>
@@ -338,6 +521,79 @@ export default function SettingsPage() {
                                 ))}
                             </Stack>
                         </Box>
+                    )}
+                </Paper>
+
+                {/* Receipt Storage */}
+                <Paper sx={{ maxWidth: 600, mb: 3, p: 3 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                        <StorageIcon color="primary" />
+                        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                            Receipt Image Storage
+                        </Typography>
+                    </Box>
+
+                    {loadingReceiptStats ? (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+                            <CircularProgress size={24} />
+                        </Box>
+                    ) : receiptStats ? (
+                        <Box>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                                <Box>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Total Receipts
+                                    </Typography>
+                                    <Typography variant="h5" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <ReceiptIcon color="info" />
+                                        {receiptStats.totalReceipts}
+                                    </Typography>
+                                </Box>
+                                <Box sx={{ textAlign: 'right' }}>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Storage Used
+                                    </Typography>
+                                    <Typography variant="h5">
+                                        {receiptStats.formattedSize}
+                                    </Typography>
+                                </Box>
+                            </Box>
+
+                            {receiptStats.totalReceipts > 0 && (
+                                <Box sx={{ mt: 2 }}>
+                                    <Divider sx={{ mb: 2 }} />
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <Box>
+                                            <Typography variant="body2" fontWeight={500}>
+                                                Clear All Receipt Images
+                                            </Typography>
+                                            <Typography variant="caption" color="text.secondary">
+                                                Remove all receipt images from this ledger
+                                            </Typography>
+                                        </Box>
+                                        <Button
+                                            variant="outlined"
+                                            color="error"
+                                            startIcon={<DeleteIcon />}
+                                            onClick={() => setOpenClearReceiptsDialog(true)}
+                                            disabled={currentLedger?.role === 'viewer'}
+                                        >
+                                            Clear
+                                        </Button>
+                                    </Box>
+                                </Box>
+                            )}
+
+                            {receiptStats.totalReceipts === 0 && (
+                                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
+                                    No receipt images stored in this ledger
+                                </Typography>
+                            )}
+                        </Box>
+                    ) : (
+                        <Typography variant="body2" color="text.secondary">
+                            Unable to load receipt statistics
+                        </Typography>
                     )}
                 </Paper>
 
@@ -491,6 +747,37 @@ export default function SettingsPage() {
                 </DialogActions>
             </Dialog>
 
+            {/* Clear Receipts Confirmation Dialog */}
+            <Dialog
+                open={openClearReceiptsDialog}
+                onClose={() => setOpenClearReceiptsDialog(false)}
+            >
+                <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <ReceiptIcon color="error" />
+                    Clear All Receipt Images?
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        This will permanently delete all receipt images ({receiptStats?.totalReceipts || 0} images, {receiptStats?.formattedSize || '0 Bytes'})
+                        from your current ledger. The transactions themselves will remain intact.
+                        This action cannot be undone.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpenClearReceiptsDialog(false)} disabled={clearingReceipts}>
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={handleClearReceipts}
+                        color="error"
+                        variant="contained"
+                        disabled={clearingReceipts}
+                    >
+                        {clearingReceipts ? 'Clearing...' : 'Clear All Receipts'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
             {/* Snackbar for notifications */}
             <Snackbar
                 open={snackbar.open}
@@ -509,3 +796,4 @@ export default function SettingsPage() {
         </Layout>
     );
 }
+
