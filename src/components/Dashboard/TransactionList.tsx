@@ -46,9 +46,11 @@ export default function TransactionList({
 
     return (
         <Box>
-            <Typography variant="h6" gutterBottom fontWeight={600}>
-                {title}
-            </Typography>
+            {title && (
+                <Typography variant="h6" gutterBottom fontWeight={600}>
+                    {title}
+                </Typography>
+            )}
             {transactions.map((transaction) => (
                 <TransactionCard
                     key={transaction.id}
