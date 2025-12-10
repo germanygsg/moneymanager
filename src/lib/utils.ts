@@ -77,7 +77,8 @@ export const filterTransactions = (
             const query = filters.searchQuery.toLowerCase();
             const matchesDescription = transaction.description.toLowerCase().includes(query);
             const matchesCategory = transaction.category.toLowerCase().includes(query);
-            if (!matchesDescription && !matchesCategory) return false;
+            const matchesAmount = transaction.amount.toString().includes(query);
+            if (!matchesDescription && !matchesCategory && !matchesAmount) return false;
         }
 
         return true;

@@ -1,8 +1,31 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Box, Container, Typography, Button } from '@mui/material';
-import { ArrowUpward, ArrowDownward } from '@mui/icons-material';
+import {
+    Box,
+    Container,
+    Typography,
+    Button,
+    IconButton,
+    Stack,
+    Menu,
+    MenuItem,
+    Tooltip,
+    ListItemIcon,
+    ListItemText,
+    TextField,
+    InputAdornment,
+    Popover,
+} from '@mui/material';
+import {
+    ArrowUpward,
+    ArrowDownward,
+    Clear,
+    FilterList,
+    Category as CategoryIcon,
+    Check,
+    Search as SearchIcon
+} from '@mui/icons-material';
 import Layout from '@/components/Layout/Layout';
 import TransactionList from '@/components/Dashboard/TransactionList';
 import TransactionForm from '@/components/Forms/TransactionForm';
@@ -16,6 +39,9 @@ export default function TransactionsPage() {
     const {
         transactions,
         categories,
+        filters,
+        updateFilters,
+        clearFilters,
         addTransaction,
         editTransaction,
         removeTransaction,
@@ -26,6 +52,11 @@ export default function TransactionsPage() {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [transactionToDelete, setTransactionToDelete] = useState<string | null>(null);
     const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
+
+    // Filter Menu States
+    const [typeAnchorEl, setTypeAnchorEl] = useState<null | HTMLElement>(null);
+    const [categoryAnchorEl, setCategoryAnchorEl] = useState<null | HTMLElement>(null);
+    const [searchAnchorEl, setSearchAnchorEl] = useState<null | HTMLElement>(null);
 
     // Sort transactions by date
     const sortedTransactions = useMemo(() => {
@@ -45,6 +76,56 @@ export default function TransactionsPage() {
     const toggleSortOrder = () => {
         setSortOrder(prev => prev === 'newest' ? 'oldest' : 'newest');
     };
+
+    const handleTypeClick = (event: React.MouseEvent<HTMLElement>) => {
+        setTypeAnchorEl(event.currentTarget);
+    };
+
+    const handleTypeClose = () => {
+        setTypeAnchorEl(null);
+    };
+
+    const handleTypeSelect = (type: 'All' | 'Income' | 'Expense') => {
+        updateFilters({ ...filters, type, category: undefined });
+        handleTypeClose();
+    };
+
+    const handleCategoryClick = (event: React.MouseEvent<HTMLElement>) => {
+        setCategoryAnchorEl(event.currentTarget);
+    };
+
+    const handleCategoryClose = () => {
+        setCategoryAnchorEl(null);
+    };
+
+    const handleCategorySelect = (categoryName: string) => {
+        updateFilters({ ...filters, category: categoryName });
+        handleCategoryClose();
+    };
+
+    const handleSearchClick = (event: React.MouseEvent<HTMLElement>) => {
+        setSearchAnchorEl(event.currentTarget);
+    };
+
+    const handleSearchClose = () => {
+        setSearchAnchorEl(null);
+    };
+
+    const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        updateFilters({ ...filters, searchQuery: event.target.value });
+    };
+
+    const handleClearFilters = () => {
+        clearFilters();
+        handleSearchClose();
+    };
+
+    const filteredCategories = useMemo(() => {
+        if (filters.type && filters.type !== 'All') {
+            return categories.filter(c => c.type === filters.type);
+        }
+        return categories;
+    }, [categories, filters.type]);
 
     const handleOpenForm = () => {
         setEditingTransaction(null);
@@ -98,21 +179,164 @@ export default function TransactionsPage() {
                     flexWrap: 'wrap',
                     gap: 2
                 }}>
-                    <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                        Transactions
-                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexGrow: 1 }}>
+                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+                            Transactions
+                        </Typography>
+                        <Stack direction="row" spacing={1} alignItems="center">
+                            {/* Type Filter */}
+                            <Tooltip title="Filter by Type">
+                                <IconButton
+                                    onClick={handleTypeClick}
+                                    color={filters.type !== 'All' ? 'primary' : 'default'}
+                                    size="small"
+                                >
+                                    <FilterList />
+                                </IconButton>
+                            </Tooltip>
+                            <Menu
+                                anchorEl={typeAnchorEl}
+                                open={Boolean(typeAnchorEl)}
+                                onClose={handleTypeClose}
+                            >
+                                <MenuItem onClick={() => handleTypeSelect('All')}>
+                                    <ListItemIcon>
+                                        {(filters.type === 'All' || !filters.type) && <Check fontSize="small" />}
+                                    </ListItemIcon>
+                                    <ListItemText>All Transactions</ListItemText>
+                                </MenuItem>
+                                <MenuItem onClick={() => handleTypeSelect('Income')}>
+                                    <ListItemIcon>
+                                        {filters.type === 'Income' && <Check fontSize="small" />}
+                                    </ListItemIcon>
+                                    <ListItemText>Income Only</ListItemText>
+                                </MenuItem>
+                                <MenuItem onClick={() => handleTypeSelect('Expense')}>
+                                    <ListItemIcon>
+                                        {filters.type === 'Expense' && <Check fontSize="small" />}
+                                    </ListItemIcon>
+                                    <ListItemText>Expense Only</ListItemText>
+                                </MenuItem>
+                            </Menu>
 
-                    <Button
-                        variant="outlined"
-                        startIcon={sortOrder === 'newest' ? <ArrowDownward /> : <ArrowUpward />}
-                        onClick={toggleSortOrder}
-                        sx={{
-                            textTransform: 'none',
-                            borderRadius: 2
-                        }}
-                    >
-                        {sortOrder === 'newest' ? 'Newest First' : 'Oldest First'}
-                    </Button>
+                            {/* Category Filter */}
+                            <Tooltip title="Filter by Category">
+                                <IconButton
+                                    onClick={handleCategoryClick}
+                                    color={filters.category ? 'primary' : 'default'}
+                                    disabled={!categories.length}
+                                    size="small"
+                                >
+                                    <CategoryIcon />
+                                </IconButton>
+                            </Tooltip>
+                            <Menu
+                                anchorEl={categoryAnchorEl}
+                                open={Boolean(categoryAnchorEl)}
+                                onClose={handleCategoryClose}
+                                PaperProps={{ sx: { maxHeight: 300, width: 250 } }}
+                            >
+                                <MenuItem onClick={() => handleCategorySelect('')}>
+                                    <ListItemIcon>
+                                        {!filters.category && <Check fontSize="small" />}
+                                    </ListItemIcon>
+                                    <ListItemText>All Categories</ListItemText>
+                                </MenuItem>
+                                {filteredCategories.map((category) => (
+                                    <MenuItem key={category.id} onClick={() => handleCategorySelect(category.name)}>
+                                        <ListItemIcon>
+                                            {filters.category === category.name && <Check fontSize="small" />}
+                                        </ListItemIcon>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                            <Box
+                                                sx={{
+                                                    width: 12,
+                                                    height: 12,
+                                                    borderRadius: '50%',
+                                                    bgcolor: category.color
+                                                }}
+                                            />
+                                            <ListItemText primary={category.name} />
+                                        </Box>
+                                    </MenuItem>
+                                ))}
+                            </Menu>
+
+                            {/* Search Filter */}
+                            <Tooltip title="Search">
+                                <IconButton
+                                    onClick={handleSearchClick}
+                                    color={filters.searchQuery ? 'primary' : 'default'}
+                                    size="small"
+                                >
+                                    <SearchIcon />
+                                </IconButton>
+                            </Tooltip>
+                            <Popover
+                                open={Boolean(searchAnchorEl)}
+                                anchorEl={searchAnchorEl}
+                                onClose={handleSearchClose}
+                                anchorOrigin={{
+                                    vertical: 'bottom',
+                                    horizontal: 'left',
+                                }}
+                                transformOrigin={{
+                                    vertical: 'top',
+                                    horizontal: 'left',
+                                }}
+                            >
+                                <Box sx={{ p: 2, width: 300 }}>
+                                    <TextField
+                                        fullWidth
+                                        size="small"
+                                        placeholder="Search amount, category, description..."
+                                        value={filters.searchQuery || ''}
+                                        onChange={handleSearchChange}
+                                        autoFocus
+                                        InputProps={{
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <SearchIcon fontSize="small" color="action" />
+                                                </InputAdornment>
+                                            ),
+                                            endAdornment: filters.searchQuery && (
+                                                <InputAdornment position="end">
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => updateFilters({ ...filters, searchQuery: '' })}
+                                                    >
+                                                        <Clear fontSize="small" />
+                                                    </IconButton>
+                                                </InputAdornment>
+                                            )
+                                        }}
+                                    />
+                                </Box>
+                            </Popover>
+
+                            {/* Sort Toggle */}
+                            <Tooltip title={sortOrder === 'newest' ? 'Switch to Oldest First' : 'Switch to Newest First'}>
+                                <IconButton
+                                    onClick={toggleSortOrder}
+                                    color="default"
+                                    size="small"
+                                >
+                                    {sortOrder === 'newest' ? <ArrowDownward /> : <ArrowUpward />}
+                                </IconButton>
+                            </Tooltip>
+
+                            {/* Clear Filter */}
+                            {(filters.type !== 'All' || filters.category || filters.searchQuery) && (
+                                <Tooltip title="Clear Filters">
+                                    <IconButton onClick={handleClearFilters} color="error" size="small">
+                                        <Clear />
+                                    </IconButton>
+                                </Tooltip>
+                            )}
+                        </Stack>
+                    </Box>
+
+
                 </Box>
 
                 <Box>
@@ -142,6 +366,6 @@ export default function TransactionsPage() {
                     onCancel={handleDeleteCancel}
                 />
             </Container>
-        </Layout>
+        </Layout >
     );
 }
