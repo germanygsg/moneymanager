@@ -6,6 +6,7 @@ import { PieChart } from '@mui/x-charts/PieChart';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { CategoryTotal } from '@/lib/types';
 import { useCurrency } from '@/contexts/CurrencyContext';
+import { formatCompactNumber } from '@/lib/utils';
 
 interface ChartsProps {
     expensesByCategory: CategoryTotal[];
@@ -71,7 +72,12 @@ export default function Charts({
                         <Box sx={{ mt: 2 }}>
                             <BarChart
                                 xAxis={[{ scaleType: 'band', data: expensesByCategory.map(c => c.category) }]}
-                                series={[{ data: expensesByCategory.map(c => c.amount), color: '#ef4444' }]}
+                                series={[{
+                                    data: expensesByCategory.map(c => c.amount),
+                                    color: '#ef4444',
+                                    valueFormatter: (v: number | null) => formatCompactNumber(v ?? 0)
+                                }]}
+                                yAxis={[{ valueFormatter: (v: number) => formatCompactNumber(v) }]}
                                 height={250}
                             />
                         </Box>
@@ -113,24 +119,23 @@ export default function Charts({
             <Card>
                 <CardContent>
                     <Typography variant="h6" gutterBottom fontWeight={600}>
-                        Income Sources
+                        Income by Category
                     </Typography>
                     {hasIncome ? (
                         <Box sx={{ mt: 2 }}>
-                            {incomeByCategory.slice(0, 5).map((item, index) => (
-                                <Box key={index} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                        <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: item.color }} />
-                                        <Typography variant="body2">{item.category}</Typography>
-                                    </Box>
-                                    <Typography variant="body2" fontWeight={600}>
-                                        {formatCurrency(item.amount)}
-                                    </Typography>
-                                </Box>
-                            ))}
+                            <BarChart
+                                xAxis={[{ scaleType: 'band', data: incomeByCategory.map(c => c.category) }]}
+                                series={[{
+                                    data: incomeByCategory.map(c => c.amount),
+                                    color: '#10b981',
+                                    valueFormatter: (v: number | null) => formatCompactNumber(v ?? 0)
+                                }]}
+                                yAxis={[{ valueFormatter: (v: number) => formatCompactNumber(v) }]}
+                                height={250}
+                            />
                         </Box>
                     ) : (
-                        <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
                             No income data available
                         </Typography>
                     )}

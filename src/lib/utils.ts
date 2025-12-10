@@ -9,6 +9,14 @@ export const formatCurrency = (amount: number): string => {
     }).format(amount);
 };
 
+export const formatCompactNumber = (amount: number): string => {
+    return new Intl.NumberFormat('en-US', {
+        notation: 'compact',
+        compactDisplay: 'short',
+        maximumFractionDigits: 1,
+    }).format(amount);
+};
+
 export const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('id-ID', {

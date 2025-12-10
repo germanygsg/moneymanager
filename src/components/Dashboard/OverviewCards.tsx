@@ -41,18 +41,10 @@ export default function OverviewCards({ summary }: OverviewCardsProps) {
             bgColor: 'primary.light',
             bgOpacity: 0.1,
         },
-        {
-            title: 'Transactions',
-            value: summary.transactionCount.toString(),
-            icon: <ReceiptIcon sx={{ fontSize: 40 }} />,
-            color: 'secondary.main',
-            bgColor: 'secondary.light',
-            bgOpacity: 0.1,
-        },
     ];
 
     return (
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 3 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: 3 }}>
             {cards.map((card, index) => (
                 <Card
                     key={index}
