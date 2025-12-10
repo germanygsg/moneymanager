@@ -66,6 +66,8 @@ export async function GET() {
             categoryId: transaction.category.id,
             ledgerId: transaction.ledgerId,
             receiptImage: transaction.receiptImage,
+            createdAt: transaction.createdAt,
+            updatedAt: transaction.updatedAt,
         }));
 
         return NextResponse.json(formattedTransactions);
@@ -174,6 +176,8 @@ export async function POST(request: NextRequest) {
             categoryId: transaction.category.id,
             ledgerId: transaction.ledgerId,
             receiptImage: transaction.receiptImage,
+            createdAt: transaction.createdAt,
+            updatedAt: transaction.updatedAt,
         };
 
         return NextResponse.json(formattedTransaction);

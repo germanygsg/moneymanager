@@ -32,7 +32,13 @@ export default function TransactionsPage() {
         return [...transactions].sort((a, b) => {
             const dateA = new Date(a.date).getTime();
             const dateB = new Date(b.date).getTime();
-            return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+            if (dateA !== dateB) {
+                return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+            }
+            // Secondary sort by creation time if dates are equal
+            const createdA = new Date(a.createdAt || 0).getTime();
+            const createdB = new Date(b.createdAt || 0).getTime();
+            return sortOrder === 'newest' ? createdB - createdA : createdA - createdB;
         });
     }, [transactions, sortOrder]);
 
