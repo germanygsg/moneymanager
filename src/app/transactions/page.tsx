@@ -1,13 +1,16 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Box, Container, Typography } from '@mui/material';
+import React, { useState, useMemo } from 'react';
+import { Box, Container, Typography, Button } from '@mui/material';
+import { ArrowUpward, ArrowDownward } from '@mui/icons-material';
 import Layout from '@/components/Layout/Layout';
 import TransactionList from '@/components/Dashboard/TransactionList';
 import TransactionForm from '@/components/Forms/TransactionForm';
 import ConfirmDialog from '@/components/Common/ConfirmDialog';
 import { useTransactions } from '@/hooks/useTransactions';
 import { Transaction } from '@/lib/types';
+
+type SortOrder = 'newest' | 'oldest';
 
 export default function TransactionsPage() {
     const {
@@ -22,6 +25,20 @@ export default function TransactionsPage() {
     const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [transactionToDelete, setTransactionToDelete] = useState<string | null>(null);
+    const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
+
+    // Sort transactions by date
+    const sortedTransactions = useMemo(() => {
+        return [...transactions].sort((a, b) => {
+            const dateA = new Date(a.date).getTime();
+            const dateB = new Date(b.date).getTime();
+            return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+        });
+    }, [transactions, sortOrder]);
+
+    const toggleSortOrder = () => {
+        setSortOrder(prev => prev === 'newest' ? 'oldest' : 'newest');
+    };
 
     const handleOpenForm = () => {
         setEditingTransaction(null);
@@ -67,13 +84,34 @@ export default function TransactionsPage() {
     return (
         <Layout onAddTransaction={handleOpenForm}>
             <Container maxWidth="xl">
-                <Typography variant="h4" sx={{ mb: 4, fontWeight: 'bold' }}>
-                    Transactions
-                </Typography>
+                <Box sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    mb: 4,
+                    flexWrap: 'wrap',
+                    gap: 2
+                }}>
+                    <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+                        Transactions
+                    </Typography>
+
+                    <Button
+                        variant="outlined"
+                        startIcon={sortOrder === 'newest' ? <ArrowDownward /> : <ArrowUpward />}
+                        onClick={toggleSortOrder}
+                        sx={{
+                            textTransform: 'none',
+                            borderRadius: 2
+                        }}
+                    >
+                        {sortOrder === 'newest' ? 'Newest First' : 'Oldest First'}
+                    </Button>
+                </Box>
 
                 <Box>
                     <TransactionList
-                        transactions={transactions}
+                        transactions={sortedTransactions}
                         categories={categories}
                         onEdit={handleEdit}
                         onDelete={handleDeleteClick}

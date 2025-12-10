@@ -116,7 +116,7 @@ export default function TransactionForm({
             setReceiptImage(null);
         }
         setImageError(null);
-    }, [editTransaction, reset, open, currentLedger]);
+    }, [editTransaction, reset, open, currentLedger?.id]);
 
     const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
