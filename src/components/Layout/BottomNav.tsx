@@ -7,11 +7,13 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import CategoryIcon from '@mui/icons-material/Category';
 import SettingsIcon from '@mui/icons-material/Settings';
+import AssessmentIcon from '@mui/icons-material/Assessment';
 
 const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
     { text: 'Transactions', icon: <ReceiptIcon />, path: '/transactions' },
     { text: 'Categories', icon: <CategoryIcon />, path: '/categories' },
+    { text: 'Reports', icon: <AssessmentIcon />, path: '/reports' },
     { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
 ];
 

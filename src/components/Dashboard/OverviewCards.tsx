@@ -5,7 +5,7 @@ import { Card, CardContent, Typography, Box } from '@mui/material';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
-import ReceiptIcon from '@mui/icons-material/Receipt';
+
 import { Summary } from '@/lib/types';
 import { useCurrency } from '@/contexts/CurrencyContext';
 
@@ -27,7 +27,7 @@ export default function OverviewCards({ summary }: OverviewCardsProps) {
         },
         {
             title: 'Total Expense',
-            value: formatCurrency(summary.totalExpense),
+            value: formatCurrency(-summary.totalExpense),
             icon: <TrendingDownIcon sx={{ fontSize: 40 }} />,
             color: 'error.main',
             bgColor: 'error.light',

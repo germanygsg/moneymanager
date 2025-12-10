@@ -32,33 +32,33 @@ async function testEndpoint(
 ): Promise<{ status: number; data: unknown; headers: Headers }> {
     const startTime = Date.now();
     const { body, cookie, expectedStatus = [200], description } = options;
-    
+
     const headers: Record<string, string> = {
         'Content-Type': 'application/json',
     };
-    
+
     if (cookie) {
         headers['Cookie'] = cookie;
     }
-    
+
     try {
         const response = await fetch(`${BASE_URL}${endpoint}`, {
             method,
             headers,
             body: body ? JSON.stringify(body) : undefined,
         });
-        
+
         const responseTime = Date.now() - startTime;
         let data: unknown;
-        
+
         try {
             data = await response.json();
         } catch {
             data = { rawResponse: 'Unable to parse JSON' };
         }
-        
+
         const passed = expectedStatus.includes(response.status);
-        
+
         results.push({
             endpoint,
             method,
@@ -67,7 +67,7 @@ async function testEndpoint(
             message: description || (passed ? 'OK' : `Expected ${expectedStatus.join(' or ')}, got ${response.status}`),
             responseTime,
         });
-        
+
         return { status: response.status, data, headers: response.headers };
     } catch (error) {
         const responseTime = Date.now() - startTime;
@@ -130,13 +130,13 @@ async function runTests() {
     // Create a test user (might already exist)
     const testUsername = `testuser_${Date.now()}`;
     const testPassword = 'testpassword123';
-    
-    const signupResult = await testEndpoint('POST', '/api/auth/signup', {
+
+    await testEndpoint('POST', '/api/auth/signup', {
         body: { username: testUsername, password: testPassword },
         expectedStatus: [200, 409], // 200 for new user, 409 if exists
         description: 'Creates a new user or returns 409 if exists',
     });
-    
+
     console.log(`   Created test user: ${testUsername}`);
 
     // ============================================================================
@@ -198,7 +198,7 @@ async function runTests() {
     const csrfResult = await fetch(`${BASE_URL}/api/auth/csrf`);
     const csrfData = await csrfResult.json() as { csrfToken: string };
     const csrfToken = csrfData.csrfToken;
-    
+
     // Get cookies from CSRF response
     let cookieString = csrfResult.headers.get('set-cookie') || '';
     console.log(`   Got CSRF token: ${csrfToken.substring(0, 20)}...`);
@@ -219,13 +219,13 @@ async function runTests() {
         }),
         redirect: 'manual',
     });
-    
+
     // Collect all cookies
     const loginCookies = loginResponse.headers.get('set-cookie');
     if (loginCookies) {
         cookieString += '; ' + loginCookies;
     }
-    
+
     if (loginResponse.status === 302 || loginResponse.status === 200) {
         addResult('/api/auth/callback/credentials', 'POST', 'PASS', `Login successful (${loginResponse.status})`);
         console.log('   Login successful!');
@@ -239,7 +239,7 @@ async function runTests() {
         headers: { Cookie: cookieString },
     });
     const sessionData = await sessionResponse.json() as { user?: { id?: string; username?: string } };
-    
+
     if (sessionData.user) {
         addResult('/api/auth/session', 'GET', 'PASS', `Session verified for user: ${sessionData.user.username}`);
         console.log(`   Session verified for user: ${sessionData.user.username}`);
@@ -260,7 +260,7 @@ async function runTests() {
             headers: { Cookie: cookieString },
         });
         const categoriesData = await categoriesResult.json() as unknown[];
-        addResult('/api/categories', 'GET', categoriesResult.status === 200 ? 'PASS' : 'FAIL', 
+        addResult('/api/categories', 'GET', categoriesResult.status === 200 ? 'PASS' : 'FAIL',
             `Got ${Array.isArray(categoriesData) ? categoriesData.length : 0} categories`);
 
         // Test user ledger
@@ -515,7 +515,7 @@ async function runTests() {
         const statusCol = result.status === 'PASS' ? '\x1b[32m' : result.status === 'FAIL' ? '\x1b[31m' : '\x1b[33m';
         const resetCol = '\x1b[0m';
         const time = result.responseTime > 0 ? `(${result.responseTime}ms)` : '';
-        
+
         console.log(`${icon} ${result.method.padEnd(6)} ${result.endpoint.padEnd(40)} ${statusCol}${result.status}${resetCol} ${time}`);
         if (result.message && result.status !== 'PASS') {
             console.log(`         ${result.message}`);
@@ -524,7 +524,7 @@ async function runTests() {
 
     console.log('\n' + '-'.repeat(80));
     console.log(`\n📈 TOTALS: ${passed} passed, ${failed} failed, ${skipped} skipped (${total} total)`);
-    
+
     const successRate = ((passed / (total - skipped)) * 100).toFixed(1);
     console.log(`📊 Success Rate: ${successRate}%\n`);
 
