@@ -14,6 +14,7 @@ import {
     InputAdornment,
     IconButton,
     Link as MuiLink,
+    Snackbar,
 } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import LockIcon from '@mui/icons-material/Lock';
@@ -29,6 +30,15 @@ export default function SignInPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [snackbar, setSnackbar] = useState<{
+        open: boolean;
+        message: string;
+        severity: 'success' | 'error';
+    }>({
+        open: false,
+        message: '',
+        severity: 'success',
+    });
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -44,12 +54,29 @@ export default function SignInPage() {
 
             if (result?.error) {
                 setError('Invalid username or password');
+                setSnackbar({
+                    open: true,
+                    message: 'Sign in failed. Invalid username or password.',
+                    severity: 'error',
+                });
             } else {
-                router.push('/');
-                router.refresh();
+                setSnackbar({
+                    open: true,
+                    message: 'Sign in successful! Redirecting...',
+                    severity: 'success',
+                });
+                setTimeout(() => {
+                    router.push('/');
+                    router.refresh();
+                }, 1000);
             }
         } catch {
             setError('An error occurred. Please try again.');
+            setSnackbar({
+                open: true,
+                message: 'An error occurred. Please try again.',
+                severity: 'error',
+            });
         } finally {
             setLoading(false);
         }
@@ -207,6 +234,21 @@ export default function SignInPage() {
                     </form>
                 </Paper>
             </Container>
+
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={6000}
+                onClose={() => setSnackbar({ ...snackbar, open: false })}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+                <Alert
+                    onClose={() => setSnackbar({ ...snackbar, open: false })}
+                    severity={snackbar.severity}
+                    sx={{ width: '100%' }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 }

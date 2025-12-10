@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import {
     Container,
@@ -18,6 +17,7 @@ import {
     ListItem,
     ListItemIcon,
     ListItemText,
+    Snackbar,
 } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import LockIcon from '@mui/icons-material/Lock';
@@ -36,6 +36,15 @@ export default function SignUpPage() {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [snackbar, setSnackbar] = useState<{
+        open: boolean;
+        message: string;
+        severity: 'success' | 'error';
+    }>({
+        open: false,
+        message: '',
+        severity: 'success',
+    });
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -44,16 +53,31 @@ export default function SignUpPage() {
         // Validation
         if (username.length < 3) {
             setError('Username must be at least 3 characters');
+            setSnackbar({
+                open: true,
+                message: 'Username must be at least 3 characters',
+                severity: 'error',
+            });
             return;
         }
 
         if (password.length < 6) {
             setError('Password must be at least 6 characters');
+            setSnackbar({
+                open: true,
+                message: 'Password must be at least 6 characters',
+                severity: 'error',
+            });
             return;
         }
 
         if (password !== confirmPassword) {
             setError('Passwords do not match');
+            setSnackbar({
+                open: true,
+                message: 'Passwords do not match',
+                severity: 'error',
+            });
             return;
         }
 
@@ -72,26 +96,32 @@ export default function SignUpPage() {
 
             if (!response.ok) {
                 setError(data.error || 'An error occurred during signup');
+                setSnackbar({
+                    open: true,
+                    message: data.error || 'Sign up failed. Please try again.',
+                    severity: 'error',
+                });
                 setLoading(false);
                 return;
             }
 
-            // Auto sign in after successful signup
-            const result = await signIn('credentials', {
-                username,
-                password,
-                redirect: false,
+            // Show success notification and redirect to login page
+            setSnackbar({
+                open: true,
+                message: 'Account created successfully! Redirecting to login...',
+                severity: 'success',
             });
 
-            if (result?.error) {
-                setError('Account created but login failed. Please sign in manually.');
-                setTimeout(() => router.push('/auth/signin'), 2000);
-            } else {
-                router.push('/');
-                router.refresh();
-            }
+            setTimeout(() => {
+                router.push('/auth/signin');
+            }, 2000);
         } catch {
             setError('An error occurred. Please try again.');
+            setSnackbar({
+                open: true,
+                message: 'An error occurred. Please try again.',
+                severity: 'error',
+            });
             setLoading(false);
         }
     };
@@ -314,6 +344,21 @@ export default function SignUpPage() {
                     </form>
                 </Paper>
             </Container>
+
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={6000}
+                onClose={() => setSnackbar({ ...snackbar, open: false })}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+                <Alert
+                    onClose={() => setSnackbar({ ...snackbar, open: false })}
+                    severity={snackbar.severity}
+                    sx={{ width: '100%' }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 }
