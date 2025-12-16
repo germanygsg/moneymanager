@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Box, Typography, Paper, alpha } from '@mui/material';
+import { Box, Typography, Paper } from '@mui/material';
 import { Transaction, Category } from '@/lib/types';
 import TransactionCard from './TransactionCard';
 import { useCurrency } from '@/contexts/CurrencyContext';

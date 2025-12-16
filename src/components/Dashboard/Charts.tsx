@@ -10,6 +10,35 @@ import { useCurrency } from '@/contexts/CurrencyContext';
 import { formatCompactNumber } from '@/lib/utils';
 import { pastelColors } from '@/theme/theme';
 
+interface ChartCardProps {
+    title: string;
+    headerColor: string;
+    children: React.ReactNode;
+}
+
+const ChartCard: React.FC<ChartCardProps> = ({
+    title,
+    headerColor,
+    children
+}) => (
+    <Card sx={{ height: '100%' }}>
+        <Box
+            sx={{
+                height: 6,
+                background: `linear-gradient(90deg, ${headerColor} 0%, ${alpha(headerColor, 0.3)} 100%)`,
+                borderTopLeftRadius: 16,
+                borderTopRightRadius: 16,
+            }}
+        />
+        <CardContent sx={{ p: 3 }}>
+            <Typography variant="h6" fontWeight={600} sx={{ mb: 2, fontSize: '1rem' }}>
+                {title}
+            </Typography>
+            {children}
+        </CardContent>
+    </Card>
+);
+
 interface ChartsProps {
     expensesByCategory: CategoryTotal[];
     incomeByCategory: CategoryTotal[];
@@ -34,33 +63,6 @@ export default function Charts({
 
     const hasExpenses = expensesByCategory.length > 0;
     const hasIncome = incomeByCategory.length > 0;
-
-    const ChartCard = ({
-        title,
-        headerColor,
-        children
-    }: {
-        title: string;
-        headerColor: string;
-        children: React.ReactNode;
-    }) => (
-        <Card sx={{ height: '100%' }}>
-            <Box
-                sx={{
-                    height: 6,
-                    background: `linear-gradient(90deg, ${headerColor} 0%, ${alpha(headerColor, 0.3)} 100%)`,
-                    borderTopLeftRadius: 16,
-                    borderTopRightRadius: 16,
-                }}
-            />
-            <CardContent sx={{ p: 3 }}>
-                <Typography variant="h6" fontWeight={600} sx={{ mb: 2, fontSize: '1rem' }}>
-                    {title}
-                </Typography>
-                {children}
-            </CardContent>
-        </Card>
-    );
 
     return (
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 3 }}>
