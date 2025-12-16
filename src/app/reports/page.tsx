@@ -73,6 +73,7 @@ export default function ReportsPage() {
     const [cycleStartDay, setCycleStartDay] = useState<number>(1);
     const [periodSelection, setPeriodSelection] = useState<'this' | 'last' | 'last3'>('this');
     const [openCycleDialog, setOpenCycleDialog] = useState(false);
+    const [zoomRange, setZoomRange] = useState<{ start: number; end: number } | null>(null);
 
 
 
@@ -129,6 +130,12 @@ export default function ReportsPage() {
 
         return last12MonthsData.reverse();
     }, [allTransactions]); // Removed cycleStartDay dependency
+
+    // Apply zoom filter to chart data
+    const visibleChartData = useMemo(() => {
+        if (!zoomRange) return chartData;
+        return chartData.slice(zoomRange.start, zoomRange.end);
+    }, [chartData, zoomRange]);
 
     // --- Period Summary Calculation ---
     const summaryData = useMemo(() => {
@@ -202,29 +209,83 @@ export default function ReportsPage() {
                             <Typography variant="h6" fontWeight="bold" gutterBottom>
                                 Annual Overview
                             </Typography>
-                            <Box sx={{ width: '100%', height: 400 }}>
-                                <LineChart
-                                    dataset={chartData}
-                                    xAxis={[{ scaleType: 'point', dataKey: 'label' }]}
-                                    series={[
-                                        {
-                                            dataKey: 'income',
-                                            label: 'Income',
-                                            color: theme.palette.success.main,
-                                            valueFormatter: (v) => v === null ? '' : formatMoney(v)
-                                        },
-                                        {
-                                            dataKey: 'expense',
-                                            label: 'Expense',
-                                            color: theme.palette.error.main,
-                                            valueFormatter: (v) => v === null ? '' : formatMoney(v)
-                                        }
-                                    ]}
-                                    yAxis={[{
-                                        valueFormatter: formatCompact,
-                                    }]}
-                                    grid={{ horizontal: true }}
-                                />
+                            <Box>
+                                <Box sx={{ width: '100%', height: 400, mb: 2 }}>
+                                    <LineChart
+                                        dataset={visibleChartData}
+                                        xAxis={[{
+                                            scaleType: 'point',
+                                            dataKey: 'label',
+                                        }]}
+                                        series={[
+                                            {
+                                                dataKey: 'income',
+                                                label: 'Income',
+                                                color: theme.palette.success.main,
+                                                valueFormatter: (v) => v === null ? '' : formatMoney(v)
+                                            },
+                                            {
+                                                dataKey: 'expense',
+                                                label: 'Expense',
+                                                color: theme.palette.error.main,
+                                                valueFormatter: (v) => v === null ? '' : formatMoney(v)
+                                            }
+                                        ]}
+                                        yAxis={[{
+                                            valueFormatter: formatCompact,
+                                        }]}
+                                        grid={{ horizontal: true }}
+                                        slotProps={{ legend: {} }}
+                                        sx={{
+                                            '& .MuiChartsLegend-root': {
+                                                position: 'absolute',
+                                                top: 8,
+                                                right: 8,
+                                            }
+                                        }}
+                                    />
+                                </Box>
+
+                                {/* Zoom Controls */}
+                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, flexWrap: 'wrap' }}>
+                                    <Button
+                                        size="small"
+                                        variant="outlined"
+                                        onClick={() => setZoomRange({ start: 0, end: 3 })}
+                                        disabled={chartData.length <= 3}
+                                    >
+                                        3M
+                                    </Button>
+                                    <Button
+                                        size="small"
+                                        variant="outlined"
+                                        onClick={() => setZoomRange({ start: 0, end: 6 })}
+                                        disabled={chartData.length <= 6}
+                                    >
+                                        6M
+                                    </Button>
+                                    <Button
+                                        size="small"
+                                        variant="outlined"
+                                        onClick={() => setZoomRange({ start: 0, end: 12 })}
+                                        disabled={zoomRange?.end === 12 && zoomRange?.start === 0}
+                                    >
+                                        All
+                                    </Button>
+                                    <Button
+                                        size="small"
+                                        variant="text"
+                                        onClick={() => setZoomRange(null)}
+                                        disabled={!zoomRange}
+                                    >
+                                        Reset
+                                    </Button>
+                                    {zoomRange && (
+                                        <Typography variant="caption" color="text.secondary">
+                                            Showing {chartData.slice(zoomRange.start, zoomRange.end).map(d => d.label).join(', ')}
+                                        </Typography>
+                                    )}
+                                </Box>
                             </Box>
                         </CardContent>
                     </Card>

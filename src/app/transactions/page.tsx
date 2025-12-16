@@ -181,8 +181,8 @@ export default function TransactionsPage() {
                     position: 'sticky',
                     top: 0,
                     zIndex: 10,
-                    py: 2,
-                    mb: 4,
+                    py: 1.5,
+                    mb: 3,
                     display: 'flex',
                     alignItems: 'center',
                     bgcolor: (theme) => theme.palette.mode === 'dark'
@@ -192,9 +192,9 @@ export default function TransactionsPage() {
                     borderBottom: 1,
                     borderColor: 'divider',
                     mx: -3,
-                    px: 3,
+                    px: 2,
                 }}>
-                    <Stack direction="row" spacing={1} alignItems="center" sx={{ width: '100%' }}>
+                    <Stack direction="row" spacing={0.5} alignItems="center" sx={{ width: '100%' }}>
                         {/* Type Filter */}
                         <Tooltip title="Filter by Type">
                             <IconButton

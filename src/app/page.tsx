@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Box, Container, Fab } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
+import { Box, Container } from '@mui/material';
 import Layout from '@/components/Layout/Layout';
 import OverviewCards from '@/components/Dashboard/OverviewCards';
 import Charts from '@/components/Dashboard/Charts';
@@ -95,21 +94,6 @@ export default function Home() {
             variant="compact"
           />
         </Box>
-
-        {/* Floating Action Button for mobile */}
-        <Fab
-          color="primary"
-          aria-label="add"
-          onClick={handleOpenForm}
-          sx={{
-            position: 'fixed',
-            bottom: 80, // Above bottom nav (56px) + spacing
-            right: 16,
-            display: { xs: 'flex', sm: 'none' },
-          }}
-        >
-          <AddIcon />
-        </Fab>
 
         {/* Transaction Form Dialog */}
         <TransactionForm
