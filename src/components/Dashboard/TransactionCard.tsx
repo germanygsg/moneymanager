@@ -14,13 +14,16 @@ import {
     DialogActions,
     Button,
     Tooltip,
+    alpha,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ReceiptIcon from '@mui/icons-material/Receipt';
+import { useTheme as useMuiTheme } from '@mui/material/styles';
 import { Transaction } from '@/lib/types';
 import { formatDate } from '@/lib/utils';
 import { useCurrency } from '@/contexts/CurrencyContext';
+import { pastelColors } from '@/theme/theme';
 
 interface TransactionCardProps {
     transaction: Transaction;
@@ -36,6 +39,8 @@ export default function TransactionCard({
     onDelete,
 }: TransactionCardProps) {
     const { formatCurrency } = useCurrency();
+    const theme = useMuiTheme();
+    const isDark = theme.palette.mode === 'dark';
     const isIncome = transaction.type === 'Income';
     const hasReceipt = !!transaction.receiptImage;
     const [receiptDialogOpen, setReceiptDialogOpen] = useState(false);
@@ -60,25 +65,38 @@ export default function TransactionCard({
                                     label={transaction.category}
                                     size="small"
                                     sx={{
-                                        bgcolor: categoryColor,
-                                        color: 'white',
+                                        bgcolor: isDark ? alpha(categoryColor, 0.2) : categoryColor,
+                                        color: isDark ? categoryColor : 'white',
                                         fontWeight: 600,
+                                        border: isDark ? `1px solid ${categoryColor}` : 'none',
                                     }}
                                 />
                                 <Chip
                                     label={transaction.type}
                                     size="small"
-                                    color={isIncome ? 'success' : 'error'}
-                                    variant="outlined"
+                                    sx={{
+                                        bgcolor: isIncome
+                                            ? (isDark ? alpha(pastelColors.mint, 0.15) : pastelColors.mintLight)
+                                            : (isDark ? alpha(pastelColors.peach, 0.15) : pastelColors.peachLight),
+                                        color: isIncome ? pastelColors.mintDark : pastelColors.peachDark,
+                                        fontWeight: 500,
+                                        border: `1px solid ${isIncome ? pastelColors.mint : pastelColors.peach}`,
+                                    }}
                                 />
                                 {hasReceipt && (
                                     <Chip
                                         icon={<ReceiptIcon sx={{ fontSize: 14 }} />}
                                         label="Receipt"
                                         size="small"
-                                        color="info"
-                                        variant="outlined"
-                                        sx={{ height: 24 }}
+                                        sx={{
+                                            height: 24,
+                                            bgcolor: isDark ? alpha(pastelColors.sky, 0.15) : pastelColors.skyLight,
+                                            color: pastelColors.skyDark,
+                                            border: `1px solid ${pastelColors.sky}`,
+                                            '& .MuiChip-icon': {
+                                                color: pastelColors.skyDark,
+                                            },
+                                        }}
                                     />
                                 )}
                             </Box>
@@ -96,7 +114,7 @@ export default function TransactionCard({
                             <Typography
                                 variant="h6"
                                 fontWeight={700}
-                                sx={{ color: isIncome ? 'success.main' : 'error.main' }}
+                                sx={{ color: isIncome ? pastelColors.mintDark : 'error.main' }}
                             >
                                 {isIncome ? '+' : '-'} {formatCurrency(transaction.amount)}
                             </Typography>
@@ -108,8 +126,13 @@ export default function TransactionCard({
                                             size="small"
                                             onClick={() => setReceiptDialogOpen(true)}
                                             disabled={!hasReceipt}
-                                            sx={{ mr: 0.5 }}
-                                            color="info"
+                                            sx={{
+                                                mr: 0.5,
+                                                color: pastelColors.skyDark,
+                                                '&:hover': {
+                                                    bgcolor: isDark ? alpha(pastelColors.sky, 0.1) : pastelColors.skyLight,
+                                                },
+                                            }}
                                         >
                                             <ReceiptIcon fontSize="small" />
                                         </IconButton>
@@ -118,14 +141,24 @@ export default function TransactionCard({
                                 <IconButton
                                     size="small"
                                     onClick={() => onEdit(transaction)}
-                                    sx={{ mr: 0.5 }}
+                                    sx={{
+                                        mr: 0.5,
+                                        '&:hover': {
+                                            bgcolor: isDark ? 'rgba(255,255,255,0.08)' : '#f5f5f8',
+                                        },
+                                    }}
                                 >
                                     <EditIcon fontSize="small" />
                                 </IconButton>
                                 <IconButton
                                     size="small"
                                     onClick={() => onDelete(transaction.id)}
-                                    color="error"
+                                    sx={{
+                                        color: 'error.main',
+                                        '&:hover': {
+                                            bgcolor: isDark ? alpha(pastelColors.blush, 0.15) : pastelColors.blushLight,
+                                        },
+                                    }}
                                 >
                                     <DeleteIcon fontSize="small" />
                                 </IconButton>
@@ -135,7 +168,7 @@ export default function TransactionCard({
                 </CardContent>
             </Card>
 
-            {/* Receipt View Dialog */}
+            {/* Receipt View Dialog - UNCHANGED FUNCTIONALITY */}
             <Dialog
                 open={receiptDialogOpen}
                 onClose={() => setReceiptDialogOpen(false)}
@@ -178,4 +211,3 @@ export default function TransactionCard({
         </>
     );
 }
-

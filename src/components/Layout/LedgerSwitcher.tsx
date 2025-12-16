@@ -54,7 +54,7 @@ export default function LedgerSwitcher() {
                     textTransform: 'none',
                     borderRadius: 2,
                     px: 2,
-                    py: 1,
+                    height: 40,
                     borderColor: 'divider',
                     color: 'text.primary',
                     '&:hover': {

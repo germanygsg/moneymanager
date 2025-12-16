@@ -88,10 +88,11 @@ export default function Home() {
 
         <Box>
           <TransactionList
-            transactions={transactions.slice(0, 5)}
+            transactions={transactions.slice(0, 10)}
             categories={categories}
             onEdit={handleEdit}
             onDelete={handleDeleteClick}
+            variant="compact"
           />
         </Box>
 

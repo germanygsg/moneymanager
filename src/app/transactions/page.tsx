@@ -179,13 +179,15 @@ export default function TransactionsPage() {
 
                 <Box sx={{
                     position: 'sticky',
-                    top: { xs: 56, sm: 64 },
+                    top: 0,
                     zIndex: 10,
                     py: 2,
                     mb: 4,
                     display: 'flex',
                     alignItems: 'center',
-                    bgcolor: (theme) => alpha(theme.palette.background.default, 0.8),
+                    bgcolor: (theme) => theme.palette.mode === 'dark'
+                        ? alpha(theme.palette.background.default, 0.95)
+                        : alpha('#fafbfc', 0.95),
                     backdropFilter: 'blur(12px)',
                     borderBottom: 1,
                     borderColor: 'divider',

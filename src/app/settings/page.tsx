@@ -59,6 +59,9 @@ interface ReceiptStats {
     formattedSize: string;
 }
 
+import EditIcon from '@mui/icons-material/Edit';
+import CheckIcon from '@mui/icons-material/Check';
+
 export default function SettingsPage() {
     const { data: session, status } = useSession();
     const router = useRouter();
@@ -76,6 +79,47 @@ export default function SettingsPage() {
     const [loadingReceiptStats, setLoadingReceiptStats] = useState(false);
     const [clearingReceipts, setClearingReceipts] = useState(false);
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
+
+    // Ledger Renaming State
+    const [isEditingName, setIsEditingName] = useState(false);
+    const [editName, setEditName] = useState('');
+
+    // Ledger Renaming Handlers
+    const handleStartEditName = () => {
+        if (currentLedger) {
+            setEditName(currentLedger.name);
+            setIsEditingName(true);
+        }
+    };
+
+    const handleCancelEditName = () => {
+        setIsEditingName(false);
+        setEditName('');
+    };
+
+    const handleSaveLedgerName = async () => {
+        if (!editName.trim() || !currentLedger) return;
+
+        try {
+            const response = await fetch(`/api/ledger/${currentLedger.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: editName }),
+            });
+
+            if (response.ok) {
+                await refreshLedgers();
+                setSnackbar({ open: true, message: 'Ledger name updated successfully', severity: 'success' });
+                setIsEditingName(false);
+            } else {
+                const data = await response.json();
+                setSnackbar({ open: true, message: data.error || 'Failed to update ledger name', severity: 'error' });
+            }
+        } catch (error) {
+            console.error('Error updating ledger name:', error);
+            setSnackbar({ open: true, message: 'An error occurred', severity: 'error' });
+        }
+    };
 
     // Redirect if not authenticated
     useEffect(() => {
@@ -364,10 +408,59 @@ export default function SettingsPage() {
                                 alignItems: 'center',
                                 justifyContent: 'space-between'
                             }}>
-                                <Box>
-                                    <Typography variant="body1" fontWeight={600}>
-                                        {currentLedger.name}
-                                    </Typography>
+                                <Box sx={{ flexGrow: 1, mr: 2 }}>
+                                    {isEditingName ? (
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                            <TextField
+                                                value={editName}
+                                                onChange={(e) => setEditName(e.target.value)}
+                                                onClick={(e) => e.stopPropagation()}
+                                                size="small"
+                                                autoFocus
+                                                sx={{
+                                                    bgcolor: 'background.paper',
+                                                    borderRadius: 1,
+                                                    '& .MuiOutlinedInput-root': {
+                                                        height: 32,
+                                                    }
+                                                }}
+                                            />
+                                            <IconButton
+                                                size="small"
+                                                onClick={handleSaveLedgerName}
+                                                sx={{ color: 'primary.contrastText', bgcolor: 'rgba(255,255,255,0.2)' }}
+                                            >
+                                                <CheckIcon fontSize="small" />
+                                            </IconButton>
+                                            <IconButton
+                                                size="small"
+                                                onClick={handleCancelEditName}
+                                                sx={{ color: 'primary.contrastText', bgcolor: 'rgba(255,255,255,0.2)' }}
+                                            >
+                                                <CloseIcon fontSize="small" />
+                                            </IconButton>
+                                        </Box>
+                                    ) : (
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                            <Typography variant="body1" fontWeight={600}>
+                                                {currentLedger.name}
+                                            </Typography>
+                                            {currentLedger.isOwner && (
+                                                <IconButton
+                                                    size="small"
+                                                    onClick={handleStartEditName}
+                                                    sx={{
+                                                        color: 'inherit',
+                                                        opacity: 0.7,
+                                                        p: 0.5,
+                                                        '&:hover': { opacity: 1, bgcolor: 'rgba(255,255,255,0.1)' }
+                                                    }}
+                                                >
+                                                    <EditIcon fontSize="small" sx={{ fontSize: 16 }} />
+                                                </IconButton>
+                                            )}
+                                        </Box>
+                                    )}
                                     <Typography variant="body2" sx={{ opacity: 0.9 }}>
                                         {currentLedger.currency}
                                         {!currentLedger.isOwner && ` • Shared with you`}
