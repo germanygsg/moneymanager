@@ -210,13 +210,39 @@ export default function ReportsPage() {
                                 Annual Overview
                             </Typography>
                             <Box>
-                                <Box sx={{ width: '100%', height: 400, mb: 2 }}>
+                                <Box
+                                    sx={{
+                                        width: '100%',
+                                        height: 400,
+                                        mb: 2,
+                                        position: 'relative',
+                                        cursor: 'zoom-in',
+                                        '&:hover': {
+                                            cursor: 'zoom-in'
+                                        }
+                                    }}
+                                    onWheel={(event) => {
+                                        event.preventDefault();
+                                        const delta = event.deltaY > 0 ? 1 : -1;
+
+                                        if (zoomRange) {
+                                            const currentSpan = zoomRange.end - zoomRange.start;
+                                            const newSpan = Math.max(2, Math.min(12, currentSpan + delta));
+                                            const start = Math.max(0, zoomRange.end - newSpan);
+                                            setZoomRange({ start, end: start + newSpan });
+                                        } else {
+                                            // Start zooming from the most recent months
+                                            const newSpan = Math.max(2, Math.min(12, 12 + delta));
+                                            const start = Math.max(0, 12 - newSpan);
+                                            setZoomRange({ start, end: 12 });
+                                        }
+                                    }}
+                                    onDoubleClick={() => setZoomRange(null)}
+                                >
                                     <LineChart
+                                        width={800}
+                                        height={400}
                                         dataset={visibleChartData}
-                                        xAxis={[{
-                                            scaleType: 'point',
-                                            dataKey: 'label',
-                                        }]}
                                         series={[
                                             {
                                                 dataKey: 'income',
@@ -231,8 +257,22 @@ export default function ReportsPage() {
                                                 valueFormatter: (v) => v === null ? '' : formatMoney(v)
                                             }
                                         ]}
+                                        xAxis={[{
+                                            id: 'x-axis',
+                                            scaleType: 'point',
+                                            dataKey: 'label',
+                                            tickLabelStyle: {
+                                                fontSize: 11,
+                                                fontFamily: 'Inter, sans-serif',
+                                            },
+                                        }]}
                                         yAxis={[{
+                                            id: 'y-axis',
                                             valueFormatter: formatCompact,
+                                            tickLabelStyle: {
+                                                fontSize: 11,
+                                                fontFamily: 'Inter, sans-serif',
+                                            },
                                         }]}
                                         grid={{ horizontal: true }}
                                         slotProps={{ legend: {} }}
@@ -247,44 +287,44 @@ export default function ReportsPage() {
                                 </Box>
 
                                 {/* Zoom Controls */}
-                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, flexWrap: 'wrap' }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5, flexWrap: 'wrap' }}>
                                     <Button
                                         size="small"
                                         variant="outlined"
-                                        onClick={() => setZoomRange({ start: 0, end: 3 })}
+                                        onClick={() => setZoomRange({ start: Math.max(0, chartData.length - 3), end: chartData.length })}
                                         disabled={chartData.length <= 3}
+                                        sx={{ minWidth: 48 }}
                                     >
                                         3M
                                     </Button>
                                     <Button
                                         size="small"
                                         variant="outlined"
-                                        onClick={() => setZoomRange({ start: 0, end: 6 })}
+                                        onClick={() => setZoomRange({ start: Math.max(0, chartData.length - 6), end: chartData.length })}
                                         disabled={chartData.length <= 6}
+                                        sx={{ minWidth: 48 }}
                                     >
                                         6M
                                     </Button>
                                     <Button
                                         size="small"
                                         variant="outlined"
-                                        onClick={() => setZoomRange({ start: 0, end: 12 })}
-                                        disabled={zoomRange?.end === 12 && zoomRange?.start === 0}
+                                        onClick={() => setZoomRange(null)}
+                                        disabled={!zoomRange}
+                                        sx={{ minWidth: 48 }}
                                     >
                                         All
                                     </Button>
-                                    <Button
-                                        size="small"
-                                        variant="text"
-                                        onClick={() => setZoomRange(null)}
-                                        disabled={!zoomRange}
-                                    >
-                                        Reset
-                                    </Button>
                                     {zoomRange && (
-                                        <Typography variant="caption" color="text.secondary">
-                                            Showing {chartData.slice(zoomRange.start, zoomRange.end).map(d => d.label).join(', ')}
+                                        <Typography variant="caption" color="primary" sx={{ ml: 1 }}>
+                                            Showing: {chartData.slice(zoomRange.start, zoomRange.end).map(d => d.label).join(', ')}
                                         </Typography>
                                     )}
+                                </Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mt: 1 }}>
+                                    <Typography variant="caption" color="text.secondary">
+                                        💡 Scroll to zoom • Double-click to reset • Use buttons for quick zoom
+                                    </Typography>
                                 </Box>
                             </Box>
                         </CardContent>

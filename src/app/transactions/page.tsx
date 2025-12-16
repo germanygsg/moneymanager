@@ -181,8 +181,8 @@ export default function TransactionsPage() {
                     position: 'sticky',
                     top: 0,
                     zIndex: 10,
-                    py: 1.5,
-                    mb: 3,
+                    py: 0.75,
+                    mb: 2,
                     display: 'flex',
                     alignItems: 'center',
                     bgcolor: (theme) => theme.palette.mode === 'dark'
@@ -195,6 +195,17 @@ export default function TransactionsPage() {
                     px: 2,
                 }}>
                     <Stack direction="row" spacing={0.5} alignItems="center" sx={{ width: '100%' }}>
+                        {/* Search Filter */}
+                        <Tooltip title="Search">
+                            <IconButton
+                                onClick={handleSearchClick}
+                                color={filters.searchQuery ? 'primary' : 'default'}
+                                size="small"
+                            >
+                                <SearchIcon />
+                            </IconButton>
+                        </Tooltip>
+
                         {/* Type Filter */}
                         <Tooltip title="Filter by Type">
                             <IconButton
@@ -230,7 +241,7 @@ export default function TransactionsPage() {
                             </MenuItem>
                         </Menu>
 
-                        {/* Category Filter */}
+                       {/* Category Filter */}
                         <Tooltip title="Filter by Category">
                             <IconButton
                                 onClick={handleCategoryClick}
@@ -273,16 +284,6 @@ export default function TransactionsPage() {
                             ))}
                         </Menu>
 
-                        {/* Search Filter */}
-                        <Tooltip title="Search">
-                            <IconButton
-                                onClick={handleSearchClick}
-                                color={filters.searchQuery ? 'primary' : 'default'}
-                                size="small"
-                            >
-                                <SearchIcon />
-                            </IconButton>
-                        </Tooltip>
                         <Popover
                             open={Boolean(searchAnchorEl)}
                             anchorEl={searchAnchorEl}
