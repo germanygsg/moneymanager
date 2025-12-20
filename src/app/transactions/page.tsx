@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
     Box,
     Container,
@@ -15,6 +15,7 @@ import {
     TextField,
     InputAdornment,
     Popover,
+    Checkbox,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import {
@@ -24,10 +25,11 @@ import {
     FilterList,
     Category as CategoryIcon,
     Check,
-    Search as SearchIcon
+    Search as SearchIcon,
+    ViewColumn as ViewColumnIcon
 } from '@mui/icons-material';
 import Layout from '@/components/Layout/Layout';
-import TransactionList from '@/components/Dashboard/TransactionList';
+import TransactionTable, { ColumnId, ALL_COLUMNS } from '@/components/Dashboard/TransactionTable';
 import TransactionForm from '@/components/Forms/TransactionForm';
 import ConfirmDialog from '@/components/Common/ConfirmDialog';
 import { useTransactions } from '@/hooks/useTransactions';
@@ -52,6 +54,48 @@ export default function TransactionsPage() {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [transactionToDelete, setTransactionToDelete] = useState<string | null>(null);
     const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
+
+    const [pickerAnchorEl, setPickerAnchorEl] = useState<null | HTMLElement>(null);
+
+    // Initialize visibleColumns from localStorage if available
+    const getInitialColumns = (): ColumnId[] => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('transaction_table_columns');
+            if (saved) {
+                try {
+                    return JSON.parse(saved);
+                } catch (e) {
+                    console.error('Failed to parse saved columns', e);
+                }
+            }
+        }
+        return ALL_COLUMNS.map(c => c.id);
+    };
+
+    const [visibleColumns, setVisibleColumns] = useState<ColumnId[]>(getInitialColumns);
+
+    // Persist column settings
+    useEffect(() => {
+        localStorage.setItem('transaction_table_columns', JSON.stringify(visibleColumns));
+    }, [visibleColumns]);
+
+    const handlePickerClick = (event: React.MouseEvent<HTMLElement>) => {
+        setPickerAnchorEl(event.currentTarget);
+    };
+
+    const handlePickerClose = () => {
+        setPickerAnchorEl(null);
+    };
+
+    const toggleColumn = (columnId: ColumnId) => {
+        setVisibleColumns(prev => {
+            if (prev.includes(columnId)) {
+                return prev.filter(id => id !== columnId);
+            } else {
+                return [...prev, columnId];
+            }
+        });
+    };
 
     // Filter Menu States
     const [typeAnchorEl, setTypeAnchorEl] = useState<null | HTMLElement>(null);
@@ -241,7 +285,7 @@ export default function TransactionsPage() {
                             </MenuItem>
                         </Menu>
 
-                       {/* Category Filter */}
+                        {/* Category Filter */}
                         <Tooltip title="Filter by Category">
                             <IconButton
                                 onClick={handleCategoryClick}
@@ -337,6 +381,37 @@ export default function TransactionsPage() {
                             </IconButton>
                         </Tooltip>
 
+                        {/* Column Picker */}
+                        <Tooltip title="Table Settings">
+                            <IconButton onClick={handlePickerClick} size="small">
+                                <ViewColumnIcon />
+                            </IconButton>
+                        </Tooltip>
+                        <Menu
+                            anchorEl={pickerAnchorEl}
+                            open={Boolean(pickerAnchorEl)}
+                            onClose={handlePickerClose}
+                            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                        >
+                            <MenuItem disabled>
+                                <Typography variant="body2" fontWeight={600}>Visible Columns</Typography>
+                            </MenuItem>
+                            {ALL_COLUMNS.map((column) => (
+                                <MenuItem key={column.id} onClick={() => toggleColumn(column.id)} dense>
+                                    <ListItemIcon>
+                                        <Checkbox
+                                            checked={visibleColumns.includes(column.id)}
+                                            size="small"
+                                            disableRipple
+                                            edge="start"
+                                        />
+                                    </ListItemIcon>
+                                    <ListItemText primary={column.label} />
+                                </MenuItem>
+                            ))}
+                        </Menu>
+
                         {/* Clear Filter */}
                         {(filters.type !== 'All' || filters.category || filters.searchQuery) && (
                             <Tooltip title="Clear Filters">
@@ -349,12 +424,12 @@ export default function TransactionsPage() {
                 </Box>
 
                 <Box>
-                    <TransactionList
+                    <TransactionTable
                         transactions={sortedTransactions}
                         categories={categories}
+                        visibleColumns={visibleColumns}
                         onEdit={handleEdit}
                         onDelete={handleDeleteClick}
-                        title=""
                     />
                 </Box>
 

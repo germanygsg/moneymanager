@@ -240,8 +240,7 @@ export default function ReportsPage() {
                                     onDoubleClick={() => setZoomRange(null)}
                                 >
                                     <LineChart
-                                        width={800}
-                                        height={400}
+
                                         dataset={visibleChartData}
                                         series={[
                                             {

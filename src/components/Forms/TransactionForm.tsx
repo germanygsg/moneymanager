@@ -168,6 +168,52 @@ export default function TransactionForm({
         }
     };
 
+    const handlePaste = async (event: React.ClipboardEvent) => {
+        const items = event.clipboardData.items;
+        let file: File | null = null;
+
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].type.indexOf('image') !== -1) {
+                file = items[i].getAsFile();
+                break;
+            }
+        }
+
+        if (!file) return;
+
+        // Prevent default paste behavior if image is found
+        // event.preventDefault(); // Don't prevent default, user might be pasting text into inputs
+
+        if (!isValidImageFile(file)) {
+            setImageError('Pasted content is not a valid image.');
+            return;
+        }
+
+        const maxSize = 10 * 1024 * 1024;
+        if (file.size > maxSize) {
+            setImageError('Pasted image is too large. Maximum size is 10MB.');
+            return;
+        }
+
+        setIsCompressing(true);
+        setImageError(null);
+
+        try {
+            const compressedImage = await compressImage(file, {
+                maxWidth: 800,
+                maxHeight: 800,
+                quality: 0.7,
+                outputFormat: 'image/jpeg',
+            });
+            setReceiptImage(compressedImage);
+        } catch (error) {
+            console.error('Error compressing pasted image:', error);
+            setImageError('Failed to process pasted image.');
+        } finally {
+            setIsCompressing(false);
+        }
+    };
+
     const handleFormSubmit = (data: TransactionFormData) => {
         const transaction: any = {
             id: editTransaction?.id || generateId(),
@@ -185,7 +231,7 @@ export default function TransactionForm({
     };
 
     return (
-        <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+        <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth onPaste={handlePaste}>
             <DialogTitle>
                 {editTransaction ? 'Edit Transaction' : 'Add Transaction'}
             </DialogTitle>
@@ -340,7 +386,7 @@ export default function TransactionForm({
                                         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
                                             <UploadIcon sx={{ fontSize: 40, color: 'text.secondary' }} />
                                             <Typography variant="body2" color="text.secondary">
-                                                Click to upload receipt image
+                                                Click to upload or <strong>Paste</strong> image here
                                             </Typography>
                                             <Typography variant="caption" color="text.disabled">
                                                 JPEG, PNG, WebP (max 10MB)

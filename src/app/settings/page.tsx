@@ -772,10 +772,10 @@ export default function SettingsPage() {
                 {/* App Information */}
                 <Box sx={{ mt: 4, maxWidth: 600 }}>
                     <Typography variant="body2" color="text.secondary" align="center">
-                        ONLINE LEDGER - Financial Tracker
+                        ONLINE LEDGER - Dexter internal tool
                     </Typography>
                     <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 1 }}>
-                        Version 2.0.0 - Multi-user Edition
+                        v0.9.1 - Made with ❤️ in Bekasi
                     </Typography>
                 </Box>
             </Container>
