@@ -1,0 +1,26 @@
+
+> dexter-cashflow@0.1.0 lint
+> eslint
+
+
+C:\Users\msi\GH\moneymanager\src\app\api\ledgers\route.ts
+   67:59  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   73:53  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   81:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   88:63  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   95:56  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  156:53  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\msi\GH\moneymanager\src\app\api\transactions\route.ts
+  35:41  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  36:39  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  58:70  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\msi\GH\moneymanager\src\app\api\user\ledger\route.ts
+  57:57  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\msi\GH\moneymanager\src\components\Forms\TransactionForm.tsx
+  218:28  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+Γ£û 11 problems (11 errors, 0 warnings)
+

@@ -10,6 +10,7 @@ import TransactionForm from '@/components/Forms/TransactionForm';
 import ConfirmDialog from '@/components/Common/ConfirmDialog';
 import { useTransactions } from '@/hooks/useTransactions';
 import { Transaction } from '@/lib/types';
+import { useLedger } from '@/contexts/LedgerContext';
 
 export default function Home() {
   const {
@@ -22,6 +23,9 @@ export default function Home() {
     editTransaction,
     removeTransaction,
   } = useTransactions();
+
+  const { currentLedger } = useLedger();
+  const isViewer = currentLedger?.role === 'viewer';
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
@@ -70,7 +74,7 @@ export default function Home() {
   };
 
   return (
-    <Layout onAddTransaction={handleOpenForm}>
+    <Layout onAddTransaction={handleOpenForm} showAddButton={!isViewer}>
       <Container maxWidth="xl">
         <Box sx={{ mb: 4 }}>
           <OverviewCards summary={summary} />
@@ -89,8 +93,8 @@ export default function Home() {
           <TransactionList
             transactions={transactions.slice(0, 10)}
             categories={categories}
-            onEdit={handleEdit}
-            onDelete={handleDeleteClick}
+            onEdit={!isViewer ? handleEdit : undefined}
+            onDelete={!isViewer ? handleDeleteClick : undefined}
             variant="compact"
           />
         </Box>

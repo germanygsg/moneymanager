@@ -30,7 +30,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
                         {
                             sharedWith: {
                                 some: {
-                                    userId: session.user.id
+                                    userId: session.user.id,
+                                    role: 'editor'
                                 }
                             }
                         }
@@ -117,7 +118,8 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
                         {
                             sharedWith: {
                                 some: {
-                                    userId: session.user.id
+                                    userId: session.user.id,
+                                    role: 'editor'
                                 }
                             }
                         }

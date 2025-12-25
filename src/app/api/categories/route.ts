@@ -38,8 +38,8 @@ export async function GET() {
 
         // Combine all categories from user's ledgers and shared ledgers
         const allCategories = [
-            ...userLedgers.flatMap((ledger: any) => ledger.categories),
-            ...sharedLedgers.flatMap((lu: any) => lu.ledger.categories)
+            ...userLedgers.flatMap((ledger) => ledger.categories),
+            ...sharedLedgers.flatMap((lu) => lu.ledger.categories)
         ];
 
         // Format categories to match the expected frontend structure

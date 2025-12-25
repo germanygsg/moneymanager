@@ -31,12 +31,7 @@ import { useCurrency } from '@/contexts/CurrencyContext';
 import { formatDate } from '@/lib/utils';
 import { pastelColors } from '@/theme/theme';
 
-interface TransactionTableProps {
-    transactions: Transaction[];
-    categories: Category[];
-    onEdit: (transaction: Transaction) => void;
-    onDelete: (id: string) => void;
-}
+
 
 export type ColumnId = 'date' | 'category' | 'description' | 'type' | 'amount';
 
@@ -59,8 +54,8 @@ interface TransactionTableProps {
     transactions: Transaction[];
     categories: Category[];
     visibleColumns: ColumnId[];
-    onEdit: (transaction: Transaction) => void;
-    onDelete: (id: string) => void;
+    onEdit?: (transaction: Transaction) => void;
+    onDelete?: (id: string) => void;
 }
 
 export default function TransactionTable({
@@ -185,11 +180,11 @@ export default function TransactionTable({
                                 <TableRow
                                     key={transaction.id}
                                     hover
-                                    onClick={() => onEdit(transaction)}
+                                    onClick={() => onEdit && onEdit(transaction)}
                                     sx={{
                                         '&:last-child td, &:last-child th': { border: 0 },
                                         transition: 'background-color 0.2s',
-                                        cursor: 'pointer',
+                                        cursor: onEdit ? 'pointer' : 'default',
                                     }}
                                 >
                                     {isColumnVisible('date') && (
@@ -276,38 +271,42 @@ export default function TransactionTable({
                                                     </IconButton>
                                                 </Tooltip>
                                             )}
-                                            <Tooltip title="Edit">
-                                                <IconButton
-                                                    size="small"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        onEdit(transaction);
-                                                    }}
-                                                    sx={{
-                                                        color: theme.palette.text.secondary,
-                                                        '&:hover': { color: theme.palette.primary.main },
-                                                        width: 28, height: 28
-                                                    }}
-                                                >
-                                                    <EditIcon sx={{ fontSize: 18 }} />
-                                                </IconButton>
-                                            </Tooltip>
-                                            <Tooltip title="Delete">
-                                                <IconButton
-                                                    size="small"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        onDelete(transaction.id);
-                                                    }}
-                                                    sx={{
-                                                        color: theme.palette.text.secondary,
-                                                        '&:hover': { color: theme.palette.error.main },
-                                                        width: 28, height: 28
-                                                    }}
-                                                >
-                                                    <DeleteIcon sx={{ fontSize: 18 }} />
-                                                </IconButton>
-                                            </Tooltip>
+                                            {onEdit && (
+                                                <Tooltip title="Edit">
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            onEdit(transaction);
+                                                        }}
+                                                        sx={{
+                                                            color: theme.palette.text.secondary,
+                                                            '&:hover': { color: theme.palette.primary.main },
+                                                            width: 28, height: 28
+                                                        }}
+                                                    >
+                                                        <EditIcon sx={{ fontSize: 18 }} />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            )}
+                                            {onDelete && (
+                                                <Tooltip title="Delete">
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            onDelete(transaction.id);
+                                                        }}
+                                                        sx={{
+                                                            color: theme.palette.text.secondary,
+                                                            '&:hover': { color: theme.palette.error.main },
+                                                            width: 28, height: 28
+                                                        }}
+                                                    >
+                                                        <DeleteIcon sx={{ fontSize: 18 }} />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            )}
                                         </Box>
                                     </TableCell>
                                 </TableRow>

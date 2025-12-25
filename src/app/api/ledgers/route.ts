@@ -64,13 +64,13 @@ export async function GET() {
         });
 
         // Format the response
-        const formattedLedgers = userLedgers.map((ledger: any) => ({
+        const formattedLedgers = userLedgers.map((ledger) => ({
             id: ledger.id,
             name: ledger.name,
             currency: ledger.currency,
             ownerId: ledger.ownerId,
             isOwner: true,
-            categories: ledger.categories.map((cat: any) => ({
+            categories: ledger.categories.map((cat) => ({
                 id: cat.id,
                 name: cat.name,
                 type: cat.type,
@@ -78,21 +78,21 @@ export async function GET() {
                 icon: cat.icon,
                 ledgerId: cat.ledgerId
             })),
-            sharedWith: ledger.sharedWith.map((lu: any) => ({
+            sharedWith: ledger.sharedWith.map((lu) => ({
                 userId: lu.userId,
                 username: lu.user.username,
                 role: lu.role
             }))
         }));
 
-        const formattedSharedLedgers = sharedLedgers.map((lu: any) => ({
+        const formattedSharedLedgers = sharedLedgers.map((lu) => ({
             id: lu.ledger.id,
             name: lu.ledger.name,
             currency: lu.ledger.currency,
             ownerId: lu.ledger.ownerId,
             isOwner: false,
             role: lu.role,
-            categories: lu.ledger.categories.map((cat: any) => ({
+            categories: lu.ledger.categories.map((cat) => ({
                 id: cat.id,
                 name: cat.name,
                 type: cat.type,
@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
             currency: ledger.currency,
             ownerId: ledger.ownerId,
             isOwner: true,
-            categories: ledger.categories.map((cat: any) => ({
+            categories: ledger.categories.map((cat) => ({
                 id: cat.id,
                 name: cat.name,
                 type: cat.type,

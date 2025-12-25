@@ -717,7 +717,7 @@ export default function SettingsPage() {
                                             color="error"
                                             startIcon={<DeleteIcon />}
                                             onClick={() => setOpenClearReceiptsDialog(true)}
-                                            disabled={currentLedger?.role === 'viewer'}
+                                            disabled={!currentLedger?.isOwner}
                                         >
                                             Clear
                                         </Button>
@@ -744,14 +744,14 @@ export default function SettingsPage() {
                         <ListItem>
                             <ListItemText
                                 primary="Currency"
-                                secondary="Currency for this ledger (affects all users)"
+                                secondary={currentLedger?.isOwner ? "Currency for this ledger (affects all users)" : "Only the ledger owner can change currency"}
                             />
                             <FormControl sx={{ minWidth: 150 }}>
                                 <Select
                                     value={currency.code}
                                     onChange={handleCurrencyChange}
                                     size="small"
-                                    disabled={currentLedger?.role === 'viewer'}
+                                    disabled={!currentLedger?.isOwner}
                                 >
                                     {CURRENCIES.map((curr) => (
                                         <MenuItem key={curr.code} value={curr.code}>

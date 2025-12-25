@@ -32,8 +32,8 @@ export async function GET() {
         });
 
         const allLedgerIds = [
-            ...userLedgers.map((ledger: any) => ledger.id),
-            ...sharedLedgers.map((lu: any) => lu.ledgerId)
+            ...userLedgers.map((ledger) => ledger.id),
+            ...sharedLedgers.map((lu) => lu.ledgerId)
         ];
 
         if (allLedgerIds.length === 0) {
@@ -55,7 +55,7 @@ export async function GET() {
         });
 
         // Format transactions to match frontend structure
-        const formattedTransactions = transactions.map((transaction: any) => ({
+        const formattedTransactions = transactions.map((transaction) => ({
             id: transaction.id,
             description: transaction.description,
             amount: transaction.amount,
@@ -125,7 +125,8 @@ export async function POST(request: NextRequest) {
                     {
                         sharedWith: {
                             some: {
-                                userId: session.user.id
+                                userId: session.user.id,
+                                role: 'editor'
                             }
                         }
                     }

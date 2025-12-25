@@ -215,7 +215,8 @@ export default function TransactionForm({
     };
 
     const handleFormSubmit = (data: TransactionFormData) => {
-        const transaction: any = {
+        const selectedCategory = categories.find(c => c.id === data.categoryId);
+        const transaction: Transaction = {
             id: editTransaction?.id || generateId(),
             date: data.date,
             description: data.description,
@@ -223,6 +224,7 @@ export default function TransactionForm({
             type: data.type,
             note: data.note || '',
             categoryId: data.categoryId,
+            category: selectedCategory?.name || '',
             ledgerId: data.ledgerId || currentLedger?.id,
             receiptImage: receiptImage || undefined,
         };

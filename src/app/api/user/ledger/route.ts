@@ -54,7 +54,7 @@ export async function GET() {
             id: userLedger.id,
             name: userLedger.name,
             currency: userLedger.currency,
-            categories: userLedger.categories.map((cat: any) => ({
+            categories: userLedger.categories.map((cat) => ({
                 id: cat.id,
                 name: cat.name,
                 type: cat.type,

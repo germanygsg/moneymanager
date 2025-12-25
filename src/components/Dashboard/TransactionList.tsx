@@ -11,8 +11,8 @@ import { pastelColors } from '@/theme/theme';
 interface TransactionListProps {
     transactions: Transaction[];
     categories: Category[];
-    onEdit: (transaction: Transaction) => void;
-    onDelete: (id: string) => void;
+    onEdit?: (transaction: Transaction) => void;
+    onDelete?: (id: string) => void;
     title?: string;
     variant?: 'default' | 'compact';
 }

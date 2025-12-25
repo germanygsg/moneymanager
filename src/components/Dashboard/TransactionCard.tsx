@@ -28,8 +28,8 @@ import { pastelColors } from '@/theme/theme';
 interface TransactionCardProps {
     transaction: Transaction;
     categoryColor?: string;
-    onEdit: (transaction: Transaction) => void;
-    onDelete: (id: string) => void;
+    onEdit?: (transaction: Transaction) => void;
+    onDelete?: (id: string) => void;
 }
 
 export default function TransactionCard({
@@ -138,30 +138,34 @@ export default function TransactionCard({
                                         </IconButton>
                                     </span>
                                 </Tooltip>
-                                <IconButton
-                                    size="small"
-                                    onClick={() => onEdit(transaction)}
-                                    sx={{
-                                        mr: 0.5,
-                                        '&:hover': {
-                                            bgcolor: isDark ? 'rgba(255,255,255,0.08)' : '#f5f5f8',
-                                        },
-                                    }}
-                                >
-                                    <EditIcon fontSize="small" />
-                                </IconButton>
-                                <IconButton
-                                    size="small"
-                                    onClick={() => onDelete(transaction.id)}
-                                    sx={{
-                                        color: 'error.main',
-                                        '&:hover': {
-                                            bgcolor: isDark ? alpha(pastelColors.blush, 0.15) : pastelColors.blushLight,
-                                        },
-                                    }}
-                                >
-                                    <DeleteIcon fontSize="small" />
-                                </IconButton>
+                                {onEdit && (
+                                    <IconButton
+                                        size="small"
+                                        onClick={() => onEdit(transaction)}
+                                        sx={{
+                                            mr: 0.5,
+                                            '&:hover': {
+                                                bgcolor: isDark ? 'rgba(255,255,255,0.08)' : '#f5f5f8',
+                                            },
+                                        }}
+                                    >
+                                        <EditIcon fontSize="small" />
+                                    </IconButton>
+                                )}
+                                {onDelete && (
+                                    <IconButton
+                                        size="small"
+                                        onClick={() => onDelete(transaction.id)}
+                                        sx={{
+                                            color: 'error.main',
+                                            '&:hover': {
+                                                bgcolor: isDark ? alpha(pastelColors.blush, 0.15) : pastelColors.blushLight,
+                                            },
+                                        }}
+                                    >
+                                        <DeleteIcon fontSize="small" />
+                                    </IconButton>
+                                )}
                             </Box>
                         </Box>
                     </Box>

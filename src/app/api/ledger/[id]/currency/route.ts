@@ -28,17 +28,7 @@ export async function PATCH(
         const ledger = await prisma.ledger.findFirst({
             where: {
                 id,
-                OR: [
-                    { ownerId: session.user.id },
-                    {
-                        sharedWith: {
-                            some: {
-                                userId: session.user.id,
-                                role: 'editor' // Only editors can change currency
-                            }
-                        }
-                    }
-                ]
+                ownerId: session.user.id
             }
         });
 
