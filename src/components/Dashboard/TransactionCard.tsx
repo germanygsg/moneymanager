@@ -83,22 +83,6 @@ export default function TransactionCard({
                                         border: `1px solid ${isIncome ? pastelColors.mint : pastelColors.peach}`,
                                     }}
                                 />
-                                {hasReceipt && (
-                                    <Chip
-                                        icon={<ReceiptIcon sx={{ fontSize: 14 }} />}
-                                        label="Receipt"
-                                        size="small"
-                                        sx={{
-                                            height: 24,
-                                            bgcolor: isDark ? alpha(pastelColors.sky, 0.15) : pastelColors.skyLight,
-                                            color: pastelColors.skyDark,
-                                            border: `1px solid ${pastelColors.sky}`,
-                                            '& .MuiChip-icon': {
-                                                color: pastelColors.skyDark,
-                                            },
-                                        }}
-                                    />
-                                )}
                             </Box>
 
                             <Typography variant="body1" fontWeight={600} gutterBottom>
@@ -120,24 +104,25 @@ export default function TransactionCard({
                             </Typography>
 
                             <Box>
-                                <Tooltip title={hasReceipt ? "View Receipt" : "No receipt attached"}>
-                                    <span>
-                                        <IconButton
-                                            size="small"
-                                            onClick={() => setReceiptDialogOpen(true)}
-                                            disabled={!hasReceipt}
-                                            sx={{
-                                                mr: 0.5,
-                                                color: pastelColors.skyDark,
-                                                '&:hover': {
-                                                    bgcolor: isDark ? alpha(pastelColors.sky, 0.1) : pastelColors.skyLight,
-                                                },
-                                            }}
-                                        >
-                                            <ReceiptIcon fontSize="small" />
-                                        </IconButton>
-                                    </span>
-                                </Tooltip>
+                                {hasReceipt && (
+                                    <Tooltip title="View Receipt">
+                                        <span>
+                                            <IconButton
+                                                size="small"
+                                                onClick={() => setReceiptDialogOpen(true)}
+                                                sx={{
+                                                    mr: 0.5,
+                                                    color: pastelColors.skyDark,
+                                                    '&:hover': {
+                                                        bgcolor: isDark ? alpha(pastelColors.sky, 0.1) : pastelColors.skyLight,
+                                                    },
+                                                }}
+                                            >
+                                                <ReceiptIcon fontSize="small" />
+                                            </IconButton>
+                                        </span>
+                                    </Tooltip>
+                                )}
                                 {onEdit && (
                                     <IconButton
                                         size="small"

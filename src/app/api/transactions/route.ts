@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { logActivity } from '@/lib/logger';
 
 // GET /api/transactions - Get all transactions for the authenticated user
 export async function GET() {
@@ -149,6 +150,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Category not found or access denied' }, { status: 404 });
         }
 
+
         const transaction = await prisma.transaction.create({
             data: {
                 description,
@@ -163,6 +165,16 @@ export async function POST(request: NextRequest) {
             include: {
                 category: true
             }
+        });
+
+        // Log activity
+        await logActivity({
+            ledgerId: targetLedgerId,
+            userId: session.user.id,
+            action: 'CREATE',
+            entityType: 'TRANSACTION',
+            entityId: transaction.id,
+            details: `${session.user.username} added a new transaction to ${ledgerAccess.name}`,
         });
 
         // Format the response

@@ -1,6 +1,5 @@
 'use client';
-
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import {
     AppBar as MuiAppBar,
@@ -9,15 +8,18 @@ import {
     IconButton,
     Button,
     Box,
+    Popover,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import MenuIcon from '@mui/icons-material/Menu';
 import MenuOpenIcon from '@mui/icons-material/MenuOpen';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 import LedgerSwitcher from './LedgerSwitcher';
 import { useTheme as useMuiTheme } from '@mui/material/styles';
 import { pastelColors } from '@/theme/theme';
+import ActivityLogs from '@/components/Logs/ActivityLogs';
 
 interface AppBarProps {
     onAddClick: () => void;
@@ -38,6 +40,17 @@ export default function AppBar({
 }: AppBarProps) {
     const theme = useMuiTheme();
     const isDark = theme.palette.mode === 'dark';
+    const [logsAnchorEl, setLogsAnchorEl] = useState<HTMLButtonElement | null>(null);
+
+    const handleLogsClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+        setLogsAnchorEl(event.currentTarget);
+    };
+
+    const handleLogsClose = () => {
+        setLogsAnchorEl(null);
+    };
+
+    const openLogs = Boolean(logsAnchorEl);
 
     return (
         <MuiAppBar
@@ -82,6 +95,22 @@ export default function AppBar({
                 </Box>
 
                 <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center' }}>
+
+                    <IconButton
+                        onClick={handleLogsClick}
+                        color="inherit"
+                        sx={{
+                            mr: 1,
+                            height: 40,
+                            width: 40,
+                            '&:hover': {
+                                bgcolor: isDark ? 'rgba(255,255,255,0.08)' : '#f5f5f8',
+                            },
+                        }}
+                    >
+                        <NotificationsIcon />
+                    </IconButton>
+
                     <IconButton
                         onClick={onToggleDarkMode}
                         color="inherit"
@@ -127,6 +156,18 @@ export default function AppBar({
                 {/* Mobile View */}
                 <Box sx={{ display: { xs: 'flex', md: 'none' }, ml: 'auto', gap: 1 }}>
                     <IconButton
+                        onClick={handleLogsClick}
+                        color="inherit"
+                        sx={{
+                            '&:hover': {
+                                bgcolor: isDark ? 'rgba(255,255,255,0.08)' : '#f5f5f8',
+                            },
+                        }}
+                    >
+                        <NotificationsIcon />
+                    </IconButton>
+
+                    <IconButton
                         onClick={onToggleDarkMode}
                         color="inherit"
                         sx={{
@@ -154,6 +195,27 @@ export default function AppBar({
                         </IconButton>
                     )}
                 </Box>
+
+                <Popover
+                    open={openLogs}
+                    anchorEl={logsAnchorEl}
+                    onClose={handleLogsClose}
+                    anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'right',
+                    }}
+                    transformOrigin={{
+                        vertical: 'top',
+                        horizontal: 'right',
+                    }}
+                    slotProps={{
+                        paper: {
+                            sx: { mt: 1.5, borderRadius: 2, boxShadow: theme.shadows[3] }
+                        }
+                    }}
+                >
+                    <ActivityLogs />
+                </Popover>
             </Toolbar>
         </MuiAppBar>
     );

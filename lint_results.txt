@@ -1,0 +1,15 @@
+
+> dexter-cashflow@0.1.0 lint
+> eslint
+
+
+C:\Users\msi\GH\moneymanager\src\app\logs\page.tsx
+  36:19  warning  'session' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\msi\GH\moneymanager\src\app\settings\page.tsx
+   30:5   warning  'Switch' is defined but never used                            @typescript-eslint/no-unused-vars
+   31:5   warning  'ListItemButton' is defined but never used                    @typescript-eslint/no-unused-vars
+  139:11  warning  'handleDisplayModeToggle' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+Γ£û 4 problems (0 errors, 4 warnings)
+

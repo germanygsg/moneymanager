@@ -27,10 +27,11 @@ import {
     Stack,
     CircularProgress,
     SelectChangeEvent,
-    Switch,
+
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
+import HistoryIcon from '@mui/icons-material/History';
 import UploadIcon from '@mui/icons-material/Upload';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -134,12 +135,7 @@ export default function SettingsPage() {
     };
 
     // Transaction Display Mode Handler
-    const handleDisplayModeToggle = () => {
-        const newMode = transactionDisplayMode === 'cards' ? 'table' : 'cards';
-        setTransactionDisplayMode(newMode);
-        localStorage.setItem('transaction_display_mode', newMode);
-        setSnackbar({ open: true, message: `Switched to ${newMode} view`, severity: 'success' });
-    };
+
 
     // Redirect if not authenticated
     useEffect(() => {
@@ -522,6 +518,35 @@ export default function SettingsPage() {
                                 )}
                             </Box>
 
+                            {/* Activity Logs Button */}
+                            <Box sx={{ mb: 3 }}>
+                                <Button
+                                    variant="outlined"
+                                    fullWidth
+                                    startIcon={<HistoryIcon />}
+                                    onClick={() => router.push('/logs')}
+                                    sx={{
+                                        justifyContent: 'flex-start',
+                                        py: 1,
+                                        borderColor: 'divider',
+                                        color: 'text.primary',
+                                        '&:hover': {
+                                            borderColor: 'primary.main',
+                                            bgcolor: 'action.hover',
+                                        }
+                                    }}
+                                >
+                                    <Box sx={{ textAlign: 'left' }}>
+                                        <Typography variant="body2" fontWeight={600}>
+                                            Shared Ledger Activities
+                                        </Typography>
+                                        <Typography variant="caption" color="text.secondary">
+                                            View activity logs for all shared ledgers
+                                        </Typography>
+                                    </Box>
+                                </Button>
+                            </Box>
+
                             {/* Other Ledgers */}
                             {availableLedgers && availableLedgers.length > 1 && (
                                 <Box>
@@ -769,24 +794,25 @@ export default function SettingsPage() {
                                 <ViewListIcon color="action" />
                                 <ListItemText
                                     primary="Transaction Display Mode"
-                                    secondary={`Show transactions as ${transactionDisplayMode === 'cards' ? 'cards' : 'table'}`}
                                 />
                             </Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Typography variant="body2" color="text.secondary">
-                                    Cards
-                                </Typography>
-                                <Switch
-                                    checked={transactionDisplayMode === 'table'}
-                                    onChange={handleDisplayModeToggle}
-                                    color="primary"
-                                />
-                                <Typography variant="body2" color="text.secondary">
-                                    Table
-                                </Typography>
-                            </Box>
+                            <FormControl size="small" sx={{ minWidth: 120 }}>
+                                <Select
+                                    value={transactionDisplayMode}
+                                    onChange={(e) => {
+                                        const newMode = e.target.value as 'cards' | 'table';
+                                        setTransactionDisplayMode(newMode);
+                                        localStorage.setItem('transaction_display_mode', newMode);
+                                    }}
+                                >
+                                    <MenuItem value="cards">Cards</MenuItem>
+                                    <MenuItem value="table">Table</MenuItem>
+                                </Select>
+                            </FormControl>
                         </ListItem>
                         <Divider />
+
+
 
                         {/* Export Data */}
                         <ListItem>

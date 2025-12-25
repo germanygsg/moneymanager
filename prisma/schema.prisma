@@ -24,6 +24,7 @@ model User {
   // Relations
   ownedLedgers   Ledger[]       @relation("LedgerOwner")
   sharedLedgers  LedgerUser[]
+  activityLogs   ActivityLog[]
 }
 
 // Ledger model - each user can have their own ledger and share it
@@ -40,6 +41,7 @@ model Ledger {
   sharedWith   LedgerUser[]
   categories   Category[]
   transactions Transaction[]
+  activityLogs ActivityLog[]
 
   @@index([ownerId])
 }
@@ -100,5 +102,24 @@ model Transaction {
   @@index([categoryId])
   @@index([date])
   @@index([type])
+}
+
+// Activity Log model for tracking changes
+model ActivityLog {
+  id        String   @id @default(cuid())
+  ledgerId  String
+  userId    String
+  action    String   // CREATE, UPDATE, DELETE, CLEAR
+  message   String   // Human readable message
+  entityType String  // TRANSACTION, CATEGORY, LEDGER
+  entityId   String?
+  createdAt DateTime @default(now())
+
+  // Relations
+  ledger    Ledger   @relation(fields: [ledgerId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([ledgerId])
+  @@index([userId]) 
 }
 

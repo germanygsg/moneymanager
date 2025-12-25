@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { logActivity } from '@/lib/logger';
 
 // PUT /api/transactions/[id] - Update a transaction
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -39,7 +40,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
                 }
             },
             include: {
-                category: true
+                category: true,
+                ledger: true
             }
         });
 
@@ -75,6 +77,16 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
             include: {
                 category: true
             }
+        });
+
+        // Log activity
+        await logActivity({
+            ledgerId: updatedTransaction.ledgerId,
+            userId: session.user.id,
+            action: 'UPDATE',
+            entityType: 'TRANSACTION',
+            entityId: updatedTransaction.id,
+            details: `${session.user.username} updated a transaction on ${existingTransaction.ledger.name}`,
         });
 
         // Format the response
@@ -125,6 +137,9 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
                         }
                     ]
                 }
+            },
+            include: {
+                ledger: true
             }
         });
 
@@ -136,6 +151,16 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
             where: {
                 id
             }
+        });
+
+        // Log activity
+        await logActivity({
+            ledgerId: existingTransaction.ledgerId,
+            userId: session.user.id,
+            action: 'DELETE',
+            entityType: 'TRANSACTION',
+            entityId: id,
+            details: `${session.user.username} deleted a transaction on ${existingTransaction.ledger.name}`,
         });
 
         return NextResponse.json({ success: true });
