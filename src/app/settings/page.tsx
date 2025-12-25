@@ -27,6 +27,7 @@ import {
     Stack,
     CircularProgress,
     SelectChangeEvent,
+    Switch,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
@@ -39,6 +40,7 @@ import StorageIcon from '@mui/icons-material/Storage';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import PersonIcon from '@mui/icons-material/Person';
 import GroupIcon from '@mui/icons-material/Group';
+import ViewListIcon from '@mui/icons-material/ViewList';
 import Layout from '@/components/Layout/Layout';
 import { useTransactions } from '@/hooks/useTransactions';
 import { useCurrency, CURRENCIES } from '@/contexts/CurrencyContext';
@@ -72,6 +74,7 @@ export default function SettingsPage() {
     const [openInviteDialog, setOpenInviteDialog] = useState(false);
     const [openClearReceiptsDialog, setOpenClearReceiptsDialog] = useState(false);
     const [inviteUsername, setInviteUsername] = useState('');
+    const [inviteRole, setInviteRole] = useState<'editor' | 'viewer'>('editor');
     const [inviteLoading, setInviteLoading] = useState(false);
     const [sharedUsers, setSharedUsers] = useState<SharedUser[]>([]);
     const [loadingSharedUsers, setLoadingSharedUsers] = useState(false);
@@ -79,6 +82,15 @@ export default function SettingsPage() {
     const [loadingReceiptStats, setLoadingReceiptStats] = useState(false);
     const [clearingReceipts, setClearingReceipts] = useState(false);
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
+
+    // Transaction Display Mode State
+    const [transactionDisplayMode, setTransactionDisplayMode] = useState<'cards' | 'table'>(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('transaction_display_mode');
+            return (saved as 'cards' | 'table') || 'cards';
+        }
+        return 'cards';
+    });
 
     // Ledger Renaming State
     const [isEditingName, setIsEditingName] = useState(false);
@@ -119,6 +131,14 @@ export default function SettingsPage() {
             console.error('Error updating ledger name:', error);
             setSnackbar({ open: true, message: 'An error occurred', severity: 'error' });
         }
+    };
+
+    // Transaction Display Mode Handler
+    const handleDisplayModeToggle = () => {
+        const newMode = transactionDisplayMode === 'cards' ? 'table' : 'cards';
+        setTransactionDisplayMode(newMode);
+        localStorage.setItem('transaction_display_mode', newMode);
+        setSnackbar({ open: true, message: `Switched to ${newMode} view`, severity: 'success' });
     };
 
     // Redirect if not authenticated
@@ -246,7 +266,7 @@ export default function SettingsPage() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ username: inviteUsername, role: 'editor' }),
+                body: JSON.stringify({ username: inviteUsername, role: inviteRole }),
             });
 
             const data = await response.json();
@@ -257,6 +277,7 @@ export default function SettingsPage() {
                 setSnackbar({ open: true, message: 'User invited successfully', severity: 'success' });
                 setOpenInviteDialog(false);
                 setInviteUsername('');
+                setInviteRole('editor'); // Reset to default
                 loadSharedUsers();
             }
         } catch {
@@ -277,6 +298,28 @@ export default function SettingsPage() {
                 setSnackbar({ open: true, message: data.error || 'Failed to remove user', severity: 'error' });
             } else {
                 setSnackbar({ open: true, message: 'User removed successfully', severity: 'success' });
+                loadSharedUsers();
+            }
+        } catch {
+            setSnackbar({ open: true, message: 'An error occurred', severity: 'error' });
+        }
+    };
+
+    const handleUpdateUserRole = async (userId: string, newRole: 'editor' | 'viewer') => {
+        try {
+            const response = await fetch(`/api/ledger/invite/${userId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ role: newRole }),
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                setSnackbar({ open: true, message: data.error || 'Failed to update role', severity: 'error' });
+            } else {
+                setSnackbar({ open: true, message: 'Role updated successfully', severity: 'success' });
                 loadSharedUsers();
             }
         } catch {
@@ -557,12 +600,13 @@ export default function SettingsPage() {
                         <ListItem>
                             <ListItemText
                                 primary="Invite User to Collaborate"
-                                secondary="Share your ledger with other users"
+                                secondary={currentLedger?.isOwner ? "Share your ledger with other users" : "Only the ledger owner can invite users"}
                             />
                             <Button
                                 variant="outlined"
                                 startIcon={<PersonAddIcon />}
                                 onClick={() => setOpenInviteDialog(true)}
+                                disabled={!currentLedger?.isOwner}
                             >
                                 Invite
                             </Button>
@@ -592,19 +636,25 @@ export default function SettingsPage() {
                                             borderRadius: 1,
                                         }}
                                     >
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                                             <Typography>{user.username}</Typography>
-                                            <Chip
-                                                label={user.role}
-                                                size="small"
-                                                color="primary"
-                                                variant="outlined"
-                                            />
+                                            <FormControl size="small" sx={{ minWidth: 120 }}>
+                                                <Select
+                                                    value={user.role}
+                                                    onChange={(e) => handleUpdateUserRole(user.id, e.target.value as 'editor' | 'viewer')}
+                                                    disabled={!currentLedger?.isOwner}
+                                                    sx={{ height: 32 }}
+                                                >
+                                                    <MenuItem value="editor">Editor</MenuItem>
+                                                    <MenuItem value="viewer">Viewer</MenuItem>
+                                                </Select>
+                                            </FormControl>
                                         </Box>
                                         <IconButton
                                             size="small"
                                             onClick={() => handleRemoveUser(user.id)}
                                             color="error"
+                                            disabled={!currentLedger?.isOwner}
                                         >
                                             <CloseIcon fontSize="small" />
                                         </IconButton>
@@ -713,6 +763,31 @@ export default function SettingsPage() {
                         </ListItem>
                         <Divider />
 
+                        {/* Transaction Display Mode */}
+                        <ListItem>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexGrow: 1 }}>
+                                <ViewListIcon color="action" />
+                                <ListItemText
+                                    primary="Transaction Display Mode"
+                                    secondary={`Show transactions as ${transactionDisplayMode === 'cards' ? 'cards' : 'table'}`}
+                                />
+                            </Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Typography variant="body2" color="text.secondary">
+                                    Cards
+                                </Typography>
+                                <Switch
+                                    checked={transactionDisplayMode === 'table'}
+                                    onChange={handleDisplayModeToggle}
+                                    color="primary"
+                                />
+                                <Typography variant="body2" color="text.secondary">
+                                    Table
+                                </Typography>
+                            </Box>
+                        </ListItem>
+                        <Divider />
+
                         {/* Export Data */}
                         <ListItem>
                             <ListItemText
@@ -783,7 +858,11 @@ export default function SettingsPage() {
             {/* Invite User Dialog */}
             <Dialog
                 open={openInviteDialog}
-                onClose={() => setOpenInviteDialog(false)}
+                onClose={() => {
+                    setOpenInviteDialog(false);
+                    setInviteUsername('');
+                    setInviteRole('editor');
+                }}
                 maxWidth="sm"
                 fullWidth
             >
@@ -791,7 +870,7 @@ export default function SettingsPage() {
                 <DialogContent>
                     <DialogContentText sx={{ mb: 2 }}>
                         Enter the username of the user you want to invite to access your ledger.
-                        They will be able to view and edit transactions.
+                        Choose their permission level below.
                     </DialogContentText>
                     <TextField
                         autoFocus
@@ -804,10 +883,42 @@ export default function SettingsPage() {
                                 handleInviteUser();
                             }
                         }}
+                        sx={{ mb: 2 }}
                     />
+                    <FormControl fullWidth>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                            Permission Level
+                        </Typography>
+                        <Select
+                            value={inviteRole}
+                            onChange={(e) => setInviteRole(e.target.value as 'editor' | 'viewer')}
+                            size="small"
+                        >
+                            <MenuItem value="editor">
+                                <Box>
+                                    <Typography variant="body2" fontWeight={500}>Editor</Typography>
+                                    <Typography variant="caption" color="text.secondary">
+                                        Can view, add, edit, and delete transactions
+                                    </Typography>
+                                </Box>
+                            </MenuItem>
+                            <MenuItem value="viewer">
+                                <Box>
+                                    <Typography variant="body2" fontWeight={500}>Viewer</Typography>
+                                    <Typography variant="caption" color="text.secondary">
+                                        Can only view transactions (read-only)
+                                    </Typography>
+                                </Box>
+                            </MenuItem>
+                        </Select>
+                    </FormControl>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setOpenInviteDialog(false)}>Cancel</Button>
+                    <Button onClick={() => {
+                        setOpenInviteDialog(false);
+                        setInviteUsername('');
+                        setInviteRole('editor');
+                    }}>Cancel</Button>
                     <Button
                         onClick={handleInviteUser}
                         variant="contained"

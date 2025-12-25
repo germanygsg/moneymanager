@@ -29,6 +29,7 @@ import {
     ViewColumn as ViewColumnIcon
 } from '@mui/icons-material';
 import Layout from '@/components/Layout/Layout';
+import TransactionList from '@/components/Dashboard/TransactionList';
 import TransactionTable, { ColumnId, ALL_COLUMNS } from '@/components/Dashboard/TransactionTable';
 import TransactionForm from '@/components/Forms/TransactionForm';
 import ConfirmDialog from '@/components/Common/ConfirmDialog';
@@ -54,6 +55,33 @@ export default function TransactionsPage() {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [transactionToDelete, setTransactionToDelete] = useState<string | null>(null);
     const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
+
+    // Transaction Display Mode from localStorage
+    const [displayMode, setDisplayMode] = useState<'cards' | 'table'>(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('transaction_display_mode');
+            return (saved as 'cards' | 'table') || 'cards';
+        }
+        return 'cards';
+    });
+
+    // Listen for changes to display mode in localStorage
+    useEffect(() => {
+        const handleStorageChange = () => {
+            const saved = localStorage.getItem('transaction_display_mode');
+            setDisplayMode((saved as 'cards' | 'table') || 'cards');
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        // Also check on focus in case user changed settings in another tab
+        window.addEventListener('focus', handleStorageChange);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            window.removeEventListener('focus', handleStorageChange);
+        };
+    }, []);
+
 
     const [pickerAnchorEl, setPickerAnchorEl] = useState<null | HTMLElement>(null);
 
@@ -381,36 +409,40 @@ export default function TransactionsPage() {
                             </IconButton>
                         </Tooltip>
 
-                        {/* Column Picker */}
-                        <Tooltip title="Table Settings">
-                            <IconButton onClick={handlePickerClick} size="small">
-                                <ViewColumnIcon />
-                            </IconButton>
-                        </Tooltip>
-                        <Menu
-                            anchorEl={pickerAnchorEl}
-                            open={Boolean(pickerAnchorEl)}
-                            onClose={handlePickerClose}
-                            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                        >
-                            <MenuItem disabled>
-                                <Typography variant="body2" fontWeight={600}>Visible Columns</Typography>
-                            </MenuItem>
-                            {ALL_COLUMNS.map((column) => (
-                                <MenuItem key={column.id} onClick={() => toggleColumn(column.id)} dense>
-                                    <ListItemIcon>
-                                        <Checkbox
-                                            checked={visibleColumns.includes(column.id)}
-                                            size="small"
-                                            disableRipple
-                                            edge="start"
-                                        />
-                                    </ListItemIcon>
-                                    <ListItemText primary={column.label} />
-                                </MenuItem>
-                            ))}
-                        </Menu>
+                        {/* Column Picker - Only show in table mode */}
+                        {displayMode === 'table' && (
+                            <>
+                                <Tooltip title="Table Settings">
+                                    <IconButton onClick={handlePickerClick} size="small">
+                                        <ViewColumnIcon />
+                                    </IconButton>
+                                </Tooltip>
+                                <Menu
+                                    anchorEl={pickerAnchorEl}
+                                    open={Boolean(pickerAnchorEl)}
+                                    onClose={handlePickerClose}
+                                    anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                                    transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                                >
+                                    <MenuItem disabled>
+                                        <Typography variant="body2" fontWeight={600}>Visible Columns</Typography>
+                                    </MenuItem>
+                                    {ALL_COLUMNS.map((column) => (
+                                        <MenuItem key={column.id} onClick={() => toggleColumn(column.id)} dense>
+                                            <ListItemIcon>
+                                                <Checkbox
+                                                    checked={visibleColumns.includes(column.id)}
+                                                    size="small"
+                                                    disableRipple
+                                                    edge="start"
+                                                />
+                                            </ListItemIcon>
+                                            <ListItemText primary={column.label} />
+                                        </MenuItem>
+                                    ))}
+                                </Menu>
+                            </>
+                        )}
 
                         {/* Clear Filter */}
                         {(filters.type !== 'All' || filters.category || filters.searchQuery) && (
@@ -424,13 +456,23 @@ export default function TransactionsPage() {
                 </Box>
 
                 <Box>
-                    <TransactionTable
-                        transactions={sortedTransactions}
-                        categories={categories}
-                        visibleColumns={visibleColumns}
-                        onEdit={handleEdit}
-                        onDelete={handleDeleteClick}
-                    />
+                    {displayMode === 'cards' ? (
+                        <TransactionList
+                            transactions={sortedTransactions}
+                            categories={categories}
+                            onEdit={handleEdit}
+                            onDelete={handleDeleteClick}
+                            title=""
+                        />
+                    ) : (
+                        <TransactionTable
+                            transactions={sortedTransactions}
+                            categories={categories}
+                            visibleColumns={visibleColumns}
+                            onEdit={handleEdit}
+                            onDelete={handleDeleteClick}
+                        />
+                    )}
                 </Box>
 
                 {/* Transaction Form Dialog */}
