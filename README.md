@@ -1,40 +1,80 @@
-# Online Ledger - Financial Tracker 💰
+# MoneyManager - Collaborative Financial Tracker 💰
 
-A modern, multi-user financial tracking web application with authentication, collaborative ledgers, and cloud storage.
+A modern, multi-user financial tracking web application with real-time collaboration, role-based access control, and comprehensive financial management features.
 
 ## ✨ Features
 
-### Core Features
-- ✅ **Multi-User Authentication**: Secure sign-up and sign-in with username/password
-- 👥 **Ledger Sharing**: Invite other users to collaborate on your ledger
-- 📊 **Data Visualization**: Interactive charts showing income vs expenses and category breakdowns
-- 💾 **Cloud Storage**: Data stored in PostgreSQL database via Vercel
-- 🔒 **Secure**: Passwords hashed with bcrypt, JWT sessions
+### 🔐 Authentication & Security
+- **Secure Authentication**: Username/password with bcrypt hashing (12 rounds)
+- **JWT Sessions**: Secure session management via NextAuth.js
+- **Protected Routes**: Automatic authentication checks
+- **Password Requirements**: Minimum 6 characters, validated server-side
 
-### Financial Management
-- ✅ **CRUD Operations**: Create, Read, Update, and Delete financial transactions
-- 📱 **Mobile Responsive**: Optimized for mobile devices with touch-friendly interface
-- 💱 **Multi-Currency Support**: Choose from multiple currencies (USD, EUR, IDR, etc.)
-- 📈 **Real-time Calculations**: Automatic balance and summary calculations
-- 🌓 **Dark Mode**: Toggle between light and dark themes
+### 👥 Multi-User Collaboration
+- **Ledger Sharing**: Invite users by username to collaborate
+- **Role-Based Access**: 
+  - **Owner**: Full control (rename, currency, invite/remove users)
+  - **Editor**: Can add, edit, and delete transactions and categories
+  - **Viewer**: Read-only access to all data
+- **Activity Logs**: Complete audit trail of all changes in shared ledgers
+- **Real-Time Sync**: Changes visible to all users immediately
 
-### Collaboration
-- 👤 **User Accounts**: Each user has their own secure account
-- 🤝 **Share Ledgers**: Invite collaborators by username
-- 🔐 **Access Control**: Manage who can access your ledger
-- 💼 **Team Finance**: Perfect for couples, families, or small teams
+### 💼 Ledger Management
+- **Multiple Ledgers**: Create and manage multiple financial workspaces
+- **Easy Switching**: Switch between owned and shared ledgers instantly
+- **Currency Support**: 10+ currencies (USD, EUR, GBP, JPY, CNY, INR, IDR, etc.)
+- **Ledger Renaming**: Customize ledger names (owner only)
+- **Smart Defaults**: New users get a default ledger with 13 categories
+
+### 💰 Transaction Management
+- **Full CRUD**: Create, read, update, and delete transactions
+- **Rich Details**: Amount, category, description, date, notes
+- **Receipt Attachments**: Attach and compress receipt images (WebP format)
+- **Smart Filtering**: Filter by date range, category, type, or search text
+- **Bulk Operations**: Export data, clear receipts
+- **Validation**: Client and server-side validation
+
+### 📊 Reports & Analytics
+- **Visual Dashboards**: Overview cards with key metrics
+- **Interactive Charts**: 
+  - Income vs Expense pie chart
+  - Category breakdown bar charts
+- **Time-Based Reports**: Filter by week, month, year, or custom range
+- **Category Analysis**: See spending patterns by category
+- **Real-Time Calculations**: Automatic balance and summary updates
+
+### 📱 Receipt Management
+- **Image Attachments**: Attach photos to transactions
+- **Auto-Compression**: Images compressed to WebP (max 800px width)
+- **Storage Stats**: View total receipts and storage used
+- **Bulk Clear**: Remove all receipt images (owner only)
+- **Full-Screen View**: Zoom and view receipts in detail
+
+### 🎨 User Experience
+- **Mobile-First Design**: Optimized for touch interactions
+- **Responsive Layout**: Adapts to mobile, tablet, and desktop
+- **Dark Mode**: System-wide theme toggle
+- **Bottom Navigation**: Quick access on mobile devices
+- **Floating Action Button**: Fast transaction entry
+- **Snackbar Notifications**: Immediate feedback for all actions
+- **Loading States**: Skeleton screens and progress indicators
 
 ## 🛠 Technology Stack
 
-- **Framework**: Next.js 16+ (App Router)
-- **Language**: TypeScript
-- **Database**: PostgreSQL with Prisma ORM
-- **Authentication**: NextAuth.js
-- **UI Library**: Material-UI (MUI) v7
-- **Charts**: MUI X Charts
-- **Forms**: React Hook Form + Zod validation
-- **Password Security**: bcryptjs
-- **Deployment**: Vercel-ready
+| Category | Technology |
+|----------|-----------|
+| **Framework** | Next.js 15+ (App Router) |
+| **Language** | TypeScript |
+| **Database** | PostgreSQL |
+| **ORM** | Prisma |
+| **Authentication** | NextAuth.js (JWT strategy) |
+| **UI Library** | Material-UI (MUI) v7 |
+| **Charts** | MUI X Charts |
+| **Forms** | React Hook Form + Zod |
+| **Password Hashing** | bcryptjs |
+| **Image Compression** | Browser Canvas API |
+| **Deployment** | Vercel |
+| **Testing** | Jest + React Testing Library |
 
 ## 🚀 Quick Start
 
@@ -56,7 +96,11 @@ npm install
 
 Create a `.env` file in the root:
 ```env
-DATABASE_URL="postgresql://username:password@localhost:5432/moneymanager"
+# Database (Vercel Postgres)
+POSTGRES_PRISMA_URL="postgresql://..."
+POSTGRES_URL_NON_POOLING="postgresql://..."
+
+# NextAuth
 NEXTAUTH_URL="http://localhost:3000"
 NEXTAUTH_SECRET="your-secret-here"
 ```
@@ -68,8 +112,8 @@ openssl rand -base64 32
 
 3. **Initialize Database**
 ```bash
-npm run db:push
-npm run db:generate
+npx prisma generate
+npx prisma db push
 ```
 
 4. **Run Development Server**
@@ -79,163 +123,312 @@ npm run dev
 
 5. **Open in Browser**
 
-Visit [http://localhost:3000](http://localhost:3000) - you'll be redirected to sign up!
+Visit [http://localhost:3000](http://localhost:3000)
 
 ### First Time Setup
 
 1. Click "Sign Up" and create your account
-2. You'll automatically get a default ledger with categories
+2. You'll automatically get:
+   - A default ledger named "My Ledger"
+   - 13 pre-configured categories (5 income, 8 expense)
 3. Start adding transactions!
 4. Invite collaborators from Settings → Invite User
 
 ## 📖 Documentation
 
-- **[Deployment Guide](DEPLOYMENT_GUIDE.md)** - Complete guide for deploying to Vercel
-- **[Environment Setup](ENV_SETUP.md)** - Environment variables configuration
+| Document | Description |
+|----------|-------------|
+| **[API Documentation](api.md)** | Complete REST API reference for all 16 endpoints with request/response examples |
+| **[Database Schema](schema.md)** | Comprehensive database schema with 6 tables, relationships, and indexes |
+| **[User Flow & UX](userflow.md)** | User journeys, interaction patterns, and UX guidelines |
+| **[Quick Start Guide](QUICK_START.md)** | Step-by-step setup and deployment guide |
 
-## Deployment to Vercel
+## 🌐 Deployment to Vercel
 
 ### Option 1: Using Vercel CLI
 
-1. Install Vercel CLI globally:
 ```bash
+# Install Vercel CLI
 npm install -g vercel
-```
 
-2. Login to Vercel:
-```bash
+# Login
 vercel login
-```
 
-3. Deploy:
-```bash
+# Deploy to preview
 vercel
-```
 
-4. For production deployment:
-```bash
+# Deploy to production
 vercel --prod
 ```
 
 ### Option 2: Using Vercel Dashboard
 
-1. Push your code to a Git repository (GitHub, GitLab, or Bitbucket)
+1. Push code to GitHub/GitLab/Bitbucket
 2. Go to [vercel.com](https://vercel.com)
 3. Click "Import Project"
 4. Select your repository
-5. Vercel will automatically detect Next.js and configure the build settings
+5. Add environment variables
 6. Click "Deploy"
 
-## Project Structure
+**Required Environment Variables:**
+- `POSTGRES_PRISMA_URL`
+- `POSTGRES_URL_NON_POOLING`
+- `NEXTAUTH_URL`
+- `NEXTAUTH_SECRET`
+
+## 📁 Project Structure
 
 ```
-dexter-cashflow/
+moneymanager/
 ├── src/
-│   ├── app/              # Next.js app directory
-│   ├── components/       # React components
-│   │   ├── Layout/       # Layout components (AppBar, Sidebar)
-│   │   ├── Dashboard/    # Dashboard components (Charts, Cards, Lists)
-│   │   ├── Forms/        # Form components
-│   │   └── Common/       # Shared components
-│   ├── hooks/            # Custom React hooks
-│   ├── lib/              # Utilities and types
-│   │   ├── types.ts      # TypeScript type definitions
-│   │   ├── storage.ts    # localStorage utilities
-│   │   └── utils.ts      # Helper functions
-│   └── theme/            # MUI theme configuration
-├── public/               # Static assets
-└── package.json
+│   ├── app/                    # Next.js App Router
+│   │   ├── api/                # API Routes (16 endpoints)
+│   │   │   ├── auth/           # Authentication endpoints
+│   │   │   ├── transactions/   # Transaction CRUD
+│   │   │   ├── categories/     # Category CRUD
+│   │   │   ├── ledgers/        # Ledger management
+│   │   │   ├── ledger/         # Ledger operations & sharing
+│   │   │   ├── user/           # User preferences
+│   │   │   ├── logs/           # Activity logs
+│   │   │   └── receipts/       # Receipt management
+│   │   ├── auth/               # Auth pages (signin, signup)
+│   │   ├── categories/         # Category management page
+│   │   ├── transactions/       # Transaction list page
+│   │   ├── reports/            # Reports and analytics
+│   │   ├── settings/           # Settings page
+│   │   ├── logs/               # Activity logs page
+│   │   ├── layout.tsx          # Root layout
+│   │   └── page.tsx            # Dashboard (home)
+│   ├── components/             # React Components
+│   │   ├── Layout/             # AppBar, Sidebar, Navigation
+│   │   ├── Dashboard/          # Charts, Cards, Lists
+│   │   ├── Forms/              # Transaction & Category forms
+│   │   ├── Common/             # Shared components
+│   │   ├── Logs/               # Activity log components
+│   │   └── Reports/            # Report components
+│   ├── contexts/               # React Contexts
+│   │   ├── LedgerContext.tsx   # Ledger state management
+│   │   └── CurrencyContext.tsx # Currency management
+│   ├── hooks/                  # Custom Hooks
+│   │   └── useTransactions.ts  # Transaction data hook
+│   ├── lib/                    # Utilities
+│   │   ├── auth.ts             # NextAuth configuration
+│   │   ├── prisma.ts           # Prisma client singleton
+│   │   ├── types.ts            # TypeScript types
+│   │   ├── storage.ts          # Default categories
+│   │   ├── logger.ts           # Activity logging
+│   │   ├── utils.ts            # Helper functions
+│   │   └── imageCompression.ts # Receipt compression
+│   └── theme/                  # MUI Theme
+│       └── theme.ts            # Theme configuration
+├── prisma/
+│   └── schema.prisma           # Database schema (6 tables)
+├── public/                     # Static assets
+│   └── logo.png                # App logo
+├── api.md                      # API documentation
+├── schema.md                   # Database documentation
+├── userflow.md                 # UX documentation
+├── QUICK_START.md              # Setup guide
+├── README.md                   # This file
+├── package.json                # Dependencies
+├── tsconfig.json               # TypeScript config
+├── next.config.ts              # Next.js config
+└── vercel.json                 # Vercel config
 ```
 
-## Data Structure
+## 🗄️ Database Schema
 
-Transactions are stored with the following fields:
-- **Date**: Transaction date
-- **Category**: Transaction category (Food, Transport, Salary, etc.)
-- **Description**: Transaction details
-- **Amount**: Transaction amount in IDR
-- **Type**: Income or Expense
+The application uses **6 tables** in PostgreSQL:
 
-## Default Categories
+| Table | Description | Key Features |
+|-------|-------------|--------------|
+| **User** | User accounts | Username (unique), hashed password, preferences |
+| **Ledger** | Financial workspaces | Name, currency, owner |
+| **LedgerUser** | Sharing junction table | User-ledger relationship, roles |
+| **Category** | Income/Expense categories | Name, type, icon, color |
+| **Transaction** | Financial transactions | Amount, date, category, receipt |
+| **ActivityLog** | Audit trail | Action, user, timestamp, entity |
 
-### Expense Categories
-- Food
-- Transport
-- Shopping
-- Entertainment
-- Utilities
-- Healthcare
-- Other
+**Relationships:**
+- User → Ledger (1:N, owns)
+- User ↔ Ledger (N:M, via LedgerUser)
+- Ledger → Category (1:N)
+- Ledger → Transaction (1:N)
+- Category → Transaction (1:N)
 
-### Income Categories
-- Salary
-- Business
-- Investment
+See [schema.md](schema.md) for complete details.
 
-## Features in Detail
+## 🎯 Default Categories
 
-### Dashboard
-- Overview cards showing total income, expenses, balance, and transaction count
-- Pie chart comparing income vs expenses
-- Bar chart showing expenses by category
-- Top expenses and income sources lists
-- Recent transactions list
+When you sign up, you get **13 default categories**:
 
-### Transaction Management
-- Add new transactions with validation
-- Edit existing transactions
-- Delete transactions with confirmation
-- Filter by date range, category, and type
-- Search transactions
+### Income (5 categories)
+| Category | Icon | Color |
+|----------|------|-------|
+| Salary | 💼 | Green |
+| Freelance | 💻 | Blue |
+| Investment | 📈 | Purple |
+| Gift | 🎁 | Orange |
+| Other Income | 💰 | Teal |
 
-### Mobile Optimization
-- Responsive layout that adapts to screen size
-- Touch-friendly buttons and interactions
-- Floating action button for quick access
-- Collapsible sidebar navigation
+### Expense (8 categories)
+| Category | Icon | Color |
+|----------|------|-------|
+| Food & Dining | 🍔 | Red |
+| Transportation | 🚗 | Orange |
+| Shopping | 🛒 | Purple |
+| Entertainment | 🎬 | Blue |
+| Bills & Utilities | 📱 | Orange |
+| Healthcare | 🏥 | Teal |
+| Education | 📚 | Dark Gray |
+| Other Expense | 💸 | Gray |
 
-## Browser Compatibility
+## 🔌 API Overview
 
-- Chrome (recommended)
-- Firefox
-- Safari
-- Edge
+**16 RESTful API Endpoints:**
 
-## 💾 Data Storage
+### Authentication (2)
+- `POST /api/auth/signup` - Register new user
+- `POST /api/auth/[...nextauth]` - NextAuth handlers
 
-Data is stored in a PostgreSQL database:
-- ✅ **Cloud Storage**: Data synced across all your devices
-- ✅ **Multi-User**: Each user has their own account and ledger
-- ✅ **Collaboration**: Share your ledger with other users
-- ✅ **Secure**: All passwords are hashed, data is protected
-- ✅ **Persistent**: Data stored safely in Vercel Postgres
+### Transactions (4)
+- `GET /api/transactions` - List all
+- `POST /api/transactions` - Create
+- `PUT /api/transactions/[id]` - Update
+- `DELETE /api/transactions/[id]` - Delete
 
-## 🎯 Completed Features
+### Categories (4)
+- `GET /api/categories` - List all
+- `POST /api/categories` - Create
+- `PUT /api/categories/[id]` - Update
+- `DELETE /api/categories/[id]` - Delete
 
-- ✅ Cloud storage and multi-device sync
-- ✅ User authentication
-- ✅ Multi-user collaboration
-- ✅ Multiple currency support
-- ✅ Export/Import data
+### Ledgers (5)
+- `GET /api/ledgers` - List all ledgers
+- `POST /api/ledgers` - Create ledger
+- `PATCH /api/ledger/[id]` - Rename ledger
+- `PATCH /api/ledger/[id]/currency` - Update currency
+- `GET /api/user/ledger` - Get user's first ledger
 
-## 🔮 Potential Future Enhancements
+### Sharing (4)
+- `POST /api/ledger/invite` - Invite user
+- `GET /api/ledger/invite` - List shared users
+- `PATCH /api/ledger/invite/[id]` - Update role
+- `DELETE /api/ledger/invite/[id]` - Remove access
 
-- 📊 Advanced reporting and analytics
-- 📅 Budget planning and alerts
-- 🔄 Recurring transactions
-- 📁 Multiple ledgers per user
-- 🏷️ Transaction tags and notes
-- 📧 Email notifications
-- 🌍 Multiple language support
+### Other (3)
+- `GET /api/logs` - Activity logs
+- `GET /api/receipts/stats` - Receipt statistics
+- `DELETE /api/receipts/stats` - Clear all receipts
 
-## License
+See [api.md](api.md) for complete API documentation.
 
-MIT
+## 🧪 Testing
 
-## Support
+```bash
+# Run unit tests
+npm test
 
-For issues or questions, please open an issue in the repository.
+# Run tests with coverage
+npm run test:coverage
+
+# Run linter
+npm run lint
+
+# Type checking
+npm run type-check
+```
+
+## 📱 Mobile Experience
+
+- **Responsive Design**: Works on all screen sizes
+- **Touch Optimized**: 48px minimum tap targets
+- **Bottom Navigation**: Quick access to main sections
+- **Swipe Gestures**: Swipe to edit/delete transactions
+- **Pull to Refresh**: Refresh data with pull gesture
+- **PWA Ready**: Can be installed as a Progressive Web App
+
+## 🌐 Browser Compatibility
+
+| Browser | Version | Status |
+|---------|---------|--------|
+| Chrome | Latest | ✅ Recommended |
+| Firefox | Latest | ✅ Supported |
+| Safari | Latest | ✅ Supported |
+| Edge | Latest | ✅ Supported |
+
+## 🔒 Security Features
+
+- **Password Hashing**: bcrypt with 12 rounds
+- **JWT Sessions**: Secure, stateless authentication
+- **CSRF Protection**: Built-in NextAuth protection
+- **SQL Injection**: Protected via Prisma ORM
+- **XSS Protection**: React's built-in escaping
+- **Role-Based Access**: Enforced at API level
+
+## ✅ Completed Features
+
+- ✅ User authentication (signup, signin, sessions)
+- ✅ Multi-user collaboration with role-based access
+- ✅ Multiple ledger support
+- ✅ Ledger sharing (invite, roles, remove)
+- ✅ Activity logging for audit trail
+- ✅ Transaction CRUD with validation
+- ✅ Category CRUD with usage protection
+- ✅ Receipt image management (compress, store, clear)
+- ✅ Multiple currency support (10+ currencies)
+- ✅ Dark mode toggle
+- ✅ Mobile-responsive design
+- ✅ Export/Import data (JSON)
+- ✅ Comprehensive API (16 endpoints)
+- ✅ Complete documentation (API, Schema, UX)
+
+## 🔮 Future Enhancements
+
+- 📊 Advanced analytics and trend analysis
+- 📅 Budget planning with alerts
+- 🔄 Recurring transactions (monthly bills)
+- 🏷️ Transaction tags and custom fields
+- 📧 Email notifications for shared ledger activity
+- 🌍 Internationalization (i18n)
+- 📱 Native mobile apps (React Native)
+- 💱 Multi-currency transactions
+- 📈 Predictive insights and AI suggestions
+- 🔗 Bank account integration
+- 📄 PDF report generation
+- 🔔 Push notifications
+- 📊 Custom report builder
+
+## 🤝 Contributing
+
+Contributions are welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+MIT License - see LICENSE file for details
+
+## 💬 Support
+
+- **Issues**: [GitHub Issues](https://github.com/yourusername/moneymanager/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/yourusername/moneymanager/discussions)
+- **Email**: support@moneymanager.app
+
+## 🙏 Acknowledgments
+
+- Built with [Next.js](https://nextjs.org/)
+- UI powered by [Material-UI](https://mui.com/)
+- Database by [Prisma](https://www.prisma.io/)
+- Authentication by [NextAuth.js](https://next-auth.js.org/)
+- Deployed on [Vercel](https://vercel.com/)
 
 ---
 
-Built with ❤️ using Next.js and Material-UI
+**Built with ❤️ for better financial management**
+
+*Last Updated: January 2026*
