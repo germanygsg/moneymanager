@@ -11,6 +11,12 @@ datasource db {
   directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
+// Enum for transaction and category types
+enum TransactionType {
+  Income
+  Expense
+}
+
 // User model for authentication
 model User {
   id              String   @id @default(cuid())
@@ -65,11 +71,11 @@ model LedgerUser {
 
 // Category model
 model Category {
-  id       String @id @default(cuid())
+  id       String          @id @default(cuid())
   name     String
-  type     String // Income or Expense
+  type     TransactionType // Income or Expense
   icon     String
-  color    String @default("#3498db")
+  color    String          @default("#3498db")
   ledgerId String
 
   // Relations
@@ -82,17 +88,17 @@ model Category {
 
 // Transaction model
 model Transaction {
-  id           String   @id @default(cuid())
+  id           String          @id @default(cuid())
   description  String
   amount       Float
-  type         String // Income or Expense
+  type         TransactionType // Income or Expense
   categoryId   String
   ledgerId     String
-  date         DateTime @default(now())
+  date         DateTime        @default(now())
   note         String?
-  receiptImage String?  @db.Text // Base64 encoded compressed receipt image
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  receiptImage String?         @db.Text // Base64 encoded compressed receipt image
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
 
   // Relations
   category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
