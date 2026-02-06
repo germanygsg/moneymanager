@@ -7,7 +7,7 @@ const globalForPrisma = globalThis as unknown as {
 
 // Regular Prisma client (with pooling)
 export const prisma = globalForPrisma.prisma ?? new PrismaClient({
-  log: ['query', 'info', 'warn', 'error'],
+  log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
 });
 
 // Separate Prisma client for RLS (no pooling, session mode)
@@ -18,13 +18,12 @@ export const prismaRls = globalForPrisma.prismaRls ?? new PrismaClient({
       url: process.env.POSTGRES_URL_NON_POOLING,
     },
   },
-  log: ['query', 'info', 'warn', 'error'],
+  log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
 });
 
-if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prisma = prisma;
-  globalForPrisma.prismaRls = prismaRls;
-}
+// Cache clients in global to prevent connection exhaustion
+globalForPrisma.prisma = prisma;
+globalForPrisma.prismaRls = prismaRls;
 
 /**
  * Get a Prisma client that sets the RLS context for the given user ID.
