@@ -75,6 +75,7 @@ A modern, multi-user financial tracking web application with real-time collabora
 | **Image Compression** | Browser Canvas API |
 | **Deployment** | Vercel |
 | **Testing** | Jest + React Testing Library |
+| **AI Integration** | Supabase MCP (Model Context Protocol) |
 
 ## 🚀 Quick Start
 
@@ -142,6 +143,7 @@ Visit [http://localhost:3000](http://localhost:3000)
 | **[Database Schema](schema.md)** | Comprehensive database schema with 6 tables, relationships, and indexes |
 | **[User Flow & UX](userflow.md)** | User journeys, interaction patterns, and UX guidelines |
 | **[Quick Start Guide](QUICK_START.md)** | Step-by-step setup and deployment guide |
+| **[MCP Setup Guide](MCP_SETUP.md)** | Supabase Model Context Protocol integration for AI-powered database operations |
 
 ## 🌐 Deployment to Vercel
 
@@ -366,6 +368,26 @@ npm run type-check
 - **XSS Protection**: React's built-in escaping
 - **Role-Based Access**: Enforced at API level
 
+## 🤖 AI Integration with Supabase MCP
+
+MoneyManager now supports Supabase's Model Context Protocol (MCP), enabling AI assistants to interact directly with your database and backend services through natural language.
+
+### What You Can Do
+
+- **Query Database**: Ask AI to retrieve transaction data, analyze spending patterns, or generate reports
+- **Manage Schema**: Understand table structures, relationships, and indexes through conversational queries
+- **Database Operations**: Perform CRUD operations using natural language instead of manual SQL
+- **Documentation Access**: Get instant answers about the database schema and project structure
+
+### Quick Start
+
+1. Install an MCP-compatible client (Claude Desktop, VS Code, Cursor, etc.)
+2. Add the MCP server configuration from `mcp.json` to your client
+3. Authenticate with your Supabase account (or use the project's database URL)
+4. Start interacting with your database using natural language
+
+See **[MCP_SETUP.md](MCP_SETUP.md)** for complete setup instructions and usage examples.
+
 ## ✅ Completed Features
 
 - ✅ User authentication (signup, signin, sessions)
@@ -382,6 +404,7 @@ npm run type-check
 - ✅ Export/Import data (JSON)
 - ✅ Comprehensive API (16 endpoints)
 - ✅ Complete documentation (API, Schema, UX)
+- ✅ Supabase MCP integration for AI-powered database operations
 
 ## 🔮 Future Enhancements
 
