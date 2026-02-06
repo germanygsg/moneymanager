@@ -13,14 +13,40 @@ export async function GET() {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // With RLS, we can simply query all logs
-        // The database automatically filters based on user's ledger access
+        // Query logs with explicit ledger access filtering
+        // NOTE: RLS policies are in place but Supabase's postgres role bypasses them
+        // So we add explicit filtering for defense in depth
         const logs = await withRLS(session.user.id, async (prisma) => {
+            // Get user's accessible ledgers
+            const accessibleLedgers = await prisma.ledger.findMany({
+                where: {
+                    OR: [
+                        { ownerId: session.user.id },
+                        {
+                            sharedWith: {
+                                some: {
+                                    userId: session.user.id
+                                }
+                            }
+                        }
+                    ]
+                },
+                select: { id: true }
+            });
+
+            const ledgerIds = accessibleLedgers.map(l => l.id);
+
+            // Only return logs for accessible ledgers
             return await prisma.activityLog.findMany({
+                where: {
+                    ledgerId: {
+                        in: ledgerIds
+                    }
+                },
                 orderBy: {
                     createdAt: 'desc'
                 },
-                take: 100 // Limit to reasonable number
+                take: 100
             });
         });
 
