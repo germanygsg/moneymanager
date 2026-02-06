@@ -144,6 +144,7 @@ Visit [http://localhost:3000](http://localhost:3000)
 | **[User Flow & UX](userflow.md)** | User journeys, interaction patterns, and UX guidelines |
 | **[Quick Start Guide](QUICK_START.md)** | Step-by-step setup and deployment guide |
 | **[MCP Setup Guide](MCP_SETUP.md)** | Supabase Model Context Protocol integration for AI-powered database operations |
+| **[MCP Usage Examples](MCP_EXAMPLES.md)** | Example queries and use cases for interacting with the database via MCP |
 
 ## 🌐 Deployment to Vercel
 
