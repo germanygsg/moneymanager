@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { withRLS } from '@/lib/prisma';
 
 // GET /api/categories - Get all categories for the authenticated user
+// RLS automatically filters to only show categories from accessible ledgers
 export async function GET() {
     try {
         const session = await getServerSession(authOptions);
@@ -12,35 +13,11 @@ export async function GET() {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Get user's ledgers and their categories
-        const userLedgers = await prisma.ledger.findMany({
-            where: {
-                ownerId: session.user.id
-            },
-            include: {
-                categories: true
-            }
+        // With RLS, we can simply query all categories
+        // The database automatically filters based on user's ledger access
+        const allCategories = await withRLS(session.user.id, async (prisma) => {
+            return await prisma.category.findMany();
         });
-
-        // Also check for shared ledgers
-        const sharedLedgers = await prisma.ledgerUser.findMany({
-            where: {
-                userId: session.user.id
-            },
-            include: {
-                ledger: {
-                    include: {
-                        categories: true
-                    }
-                }
-            }
-        });
-
-        // Combine all categories from user's ledgers and shared ledgers
-        const allCategories = [
-            ...userLedgers.flatMap((ledger) => ledger.categories),
-            ...sharedLedgers.flatMap((lu) => lu.ledger.categories)
-        ];
 
         // Format categories to match the expected frontend structure
         const formattedCategories = allCategories.map(category => ({
@@ -60,6 +37,7 @@ export async function GET() {
 }
 
 // POST /api/categories - Create a new category
+// RLS automatically enforces editor permissions
 export async function POST(request: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
@@ -75,40 +53,32 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
-        // Verify user has access to the ledger
-        const ledger = await prisma.ledger.findFirst({
-            where: {
-                id: ledgerId,
-                OR: [
-                    { ownerId: session.user.id },
-                    {
-                        sharedWith: {
-                            some: {
-                                userId: session.user.id
-                            }
-                        }
-                    }
-                ]
-            }
+        // RLS will automatically check if user has editor access to the ledger
+        const category = await withRLS(session.user.id, async (prisma) => {
+            return await prisma.category.create({
+                data: {
+                    name,
+                    type,
+                    color,
+                    icon,
+                    ledgerId
+                }
+            });
         });
 
-        if (!ledger) {
-            return NextResponse.json({ error: 'Ledger not found or access denied' }, { status: 404 });
-        }
-
-        const category = await prisma.category.create({
-            data: {
-                name,
-                type,
-                color,
-                icon,
-                ledgerId
-            }
+        return NextResponse.json({
+            id: category.id,
+            name: category.name,
+            type: category.type,
+            color: category.color,
+            icon: category.icon,
+            ledgerId: category.ledgerId
         });
-
-        return NextResponse.json(category);
     } catch (error) {
         console.error('Error creating category:', error);
+        if (error instanceof Error && error.message.includes('permission')) {
+            return NextResponse.json({ error: 'Access denied: You need editor permissions' }, { status: 403 });
+        }
         return NextResponse.json({ error: 'Failed to create category' }, { status: 500 });
     }
 }

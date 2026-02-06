@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { withRLS } from '@/lib/prisma';
 import { logActivity } from '@/lib/logger';
 
 // GET /api/transactions - Get all transactions for the authenticated user
+// RLS automatically filters to only show transactions from accessible ledgers
 export async function GET() {
     try {
         const session = await getServerSession(authOptions);
@@ -13,46 +14,17 @@ export async function GET() {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Get transactions from user's ledgers and shared ledgers
-        const userLedgers = await prisma.ledger.findMany({
-            where: {
-                ownerId: session.user.id
-            },
-            select: {
-                id: true
-            }
-        });
-
-        const sharedLedgers = await prisma.ledgerUser.findMany({
-            where: {
-                userId: session.user.id
-            },
-            select: {
-                ledgerId: true
-            }
-        });
-
-        const allLedgerIds = [
-            ...userLedgers.map((ledger) => ledger.id),
-            ...sharedLedgers.map((lu) => lu.ledgerId)
-        ];
-
-        if (allLedgerIds.length === 0) {
-            return NextResponse.json([]);
-        }
-
-        const transactions = await prisma.transaction.findMany({
-            where: {
-                ledgerId: {
-                    in: allLedgerIds
+        // With RLS enabled, we can simply query all transactions
+        // The database will automatically filter based on user access
+        const transactions = await withRLS(session.user.id, async (prisma) => {
+            return await prisma.transaction.findMany({
+                include: {
+                    category: true
+                },
+                orderBy: {
+                    date: 'desc'
                 }
-            },
-            include: {
-                category: true
-            },
-            orderBy: {
-                date: 'desc'
-            }
+            });
         });
 
         // Format transactions to match frontend structure
@@ -79,6 +51,7 @@ export async function GET() {
 }
 
 // POST /api/transactions - Create a new transaction
+// RLS automatically enforces editor permissions
 export async function POST(request: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
@@ -94,108 +67,83 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
-        // If no ledgerId provided, use the first available ledger for the user
-        let targetLedgerId = ledgerId;
-        if (!targetLedgerId) {
-            const userLedger = await prisma.ledger.findFirst({
-                where: {
-                    ownerId: session.user.id
+        // Use RLS context for all database operations
+        const result = await withRLS(session.user.id, async (prisma) => {
+            // If no ledgerId provided, use the first available ledger
+            let targetLedgerId = ledgerId;
+            if (!targetLedgerId) {
+                const userLedger = await prisma.ledger.findFirst({
+                    where: { ownerId: session.user.id }
+                });
+                if (!userLedger) {
+                    const newLedger = await prisma.ledger.create({
+                        data: {
+                            name: 'My Ledger',
+                            currency: 'USD',
+                            ownerId: session.user.id
+                        }
+                    });
+                    targetLedgerId = newLedger.id;
+                } else {
+                    targetLedgerId = userLedger.id;
+                }
+            }
+
+            // RLS will automatically check if user has editor access
+            // If not, the insert will fail with a permission error
+            const transaction = await prisma.transaction.create({
+                data: {
+                    description,
+                    amount: parseFloat(amount),
+                    type,
+                    date: new Date(date),
+                    note,
+                    categoryId,
+                    ledgerId: targetLedgerId,
+                    receiptImage: receiptImage || null,
+                },
+                include: {
+                    category: true,
+                    ledger: true
                 }
             });
-            if (!userLedger) {
-                // Create a default ledger if none exists
-                const newLedger = await prisma.ledger.create({
-                    data: {
-                        name: 'My Ledger',
-                        currency: 'USD',
-                        ownerId: session.user.id
-                    }
-                });
-                targetLedgerId = newLedger.id;
-            } else {
-                targetLedgerId = userLedger.id;
-            }
-        }
 
-        // Verify user has access to the ledger and category
-        const ledgerAccess = await prisma.ledger.findFirst({
-            where: {
-                id: targetLedgerId,
-                OR: [
-                    { ownerId: session.user.id },
-                    {
-                        sharedWith: {
-                            some: {
-                                userId: session.user.id,
-                                role: 'editor'
-                            }
-                        }
-                    }
-                ]
-            }
-        });
-
-        if (!ledgerAccess) {
-            return NextResponse.json({ error: 'Ledger not found or access denied' }, { status: 404 });
-        }
-
-        const categoryAccess = await prisma.category.findFirst({
-            where: {
-                id: categoryId,
-                ledgerId: targetLedgerId
-            }
-        });
-
-        if (!categoryAccess) {
-            return NextResponse.json({ error: 'Category not found or access denied' }, { status: 404 });
-        }
-
-
-        const transaction = await prisma.transaction.create({
-            data: {
-                description,
-                amount: parseFloat(amount),
-                type,
-                date: new Date(date),
-                note,
-                categoryId,
+            // Log activity
+            await logActivity({
                 ledgerId: targetLedgerId,
-                receiptImage: receiptImage || null,
-            },
-            include: {
-                category: true
-            }
-        });
+                userId: session.user.id,
+                action: 'CREATE',
+                entityType: 'TRANSACTION',
+                entityId: transaction.id,
+                details: `${session.user.username} added a new transaction to ${transaction.ledger.name}`,
+            });
 
-        // Log activity
-        await logActivity({
-            ledgerId: targetLedgerId,
-            userId: session.user.id,
-            action: 'CREATE',
-            entityType: 'TRANSACTION',
-            entityId: transaction.id,
-            details: `${session.user.username} added a new transaction to ${ledgerAccess.name}`,
+            return transaction;
         });
 
         // Format the response
         const formattedTransaction = {
-            id: transaction.id,
-            description: transaction.description,
-            amount: transaction.amount,
-            type: transaction.type,
-            date: transaction.date.toISOString().split('T')[0],
-            note: transaction.note,
-            category: transaction.category.name,
-            categoryId: transaction.category.id,
-            ledgerId: transaction.ledgerId,
-            receiptImage: transaction.receiptImage,
-            createdAt: transaction.createdAt,
-            updatedAt: transaction.updatedAt,
+            id: result.id,
+            description: result.description,
+            amount: result.amount,
+            type: result.type,
+            date: result.date.toISOString().split('T')[0],
+            note: result.note,
+            category: result.category.name,
+            categoryId: result.category.id,
+            ledgerId: result.ledgerId,
+            receiptImage: result.receiptImage,
+            createdAt: result.createdAt,
+            updatedAt: result.updatedAt,
         };
 
         return NextResponse.json(formattedTransaction);
     } catch (error) {
         console.error('Error creating transaction:', error);
+        // RLS permission errors will be caught here
+        if (error instanceof Error && error.message.includes('permission')) {
+            return NextResponse.json({ error: 'Access denied: You need editor permissions' }, { status: 403 });
+        }
         return NextResponse.json({ error: 'Failed to create transaction' }, { status: 500 });
     }
 }

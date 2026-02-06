@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { withRLS } from '@/lib/prisma';
 import { DEFAULT_CATEGORIES } from '@/lib/storage';
 
 // GET /api/ledgers - Get all ledgers for the authenticated user
+// RLS automatically filters to owned and shared ledgers
 export async function GET() {
     try {
         const session = await getServerSession(authOptions);
@@ -13,58 +14,63 @@ export async function GET() {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Get user's own ledgers
-        const userLedgers = await prisma.ledger.findMany({
-            where: {
-                ownerId: session.user.id
-            },
-            include: {
-                categories: true,
-                sharedWith: {
-                    include: {
-                        user: {
-                            select: {
-                                id: true,
-                                username: true
+        // With RLS, we can query ledgers and the database will filter automatically
+        const result = await withRLS(session.user.id, async (prisma) => {
+            // Get user's own ledgers
+            const userLedgers = await prisma.ledger.findMany({
+                where: {
+                    ownerId: session.user.id
+                },
+                include: {
+                    categories: true,
+                    sharedWith: {
+                        include: {
+                            user: {
+                                select: {
+                                    id: true,
+                                    username: true
+                                }
                             }
                         }
                     }
                 }
-            }
-        });
+            });
 
-        // Get ledgers shared with the user
-        const sharedLedgers = await prisma.ledgerUser.findMany({
-            where: {
-                userId: session.user.id
-            },
-            include: {
-                ledger: {
-                    include: {
-                        owner: {
-                            select: {
-                                id: true,
-                                username: true
-                            }
-                        },
-                        categories: true,
-                        sharedWith: {
-                            include: {
-                                user: {
-                                    select: {
-                                        id: true,
-                                        username: true
+            // Get ledgers shared with the user
+            const sharedLedgers = await prisma.ledgerUser.findMany({
+                where: {
+                    userId: session.user.id
+                },
+                include: {
+                    ledger: {
+                        include: {
+                            owner: {
+                                select: {
+                                    id: true,
+                                    username: true
+                                }
+                            },
+                            categories: true,
+                            sharedWith: {
+                                include: {
+                                    user: {
+                                        select: {
+                                            id: true,
+                                            username: true
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                 }
-            }
+            });
+
+            return { userLedgers, sharedLedgers };
         });
 
         // Format the response
-        const formattedLedgers = userLedgers.map((ledger) => ({
+        const formattedLedgers = result.userLedgers.map((ledger) => ({
             id: ledger.id,
             name: ledger.name,
             currency: ledger.currency,
@@ -85,7 +91,7 @@ export async function GET() {
             }))
         }));
 
-        const formattedSharedLedgers = sharedLedgers.map((lu) => ({
+        const formattedSharedLedgers = result.sharedLedgers.map((lu) => ({
             id: lu.ledger.id,
             name: lu.ledger.name,
             currency: lu.ledger.currency,
@@ -126,24 +132,26 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
-        // Create the ledger
-        const ledger = await prisma.ledger.create({
-            data: {
-                name,
-                currency,
-                ownerId: session.user.id,
-                categories: {
-                    create: DEFAULT_CATEGORIES.map(cat => ({
-                        name: cat.name,
-                        type: cat.type,
-                        color: cat.color,
-                        icon: cat.icon || ''
-                    }))
+        // RLS will automatically check permissions
+        const ledger = await withRLS(session.user.id, async (prisma) => {
+            return await prisma.ledger.create({
+                data: {
+                    name,
+                    currency,
+                    ownerId: session.user.id,
+                    categories: {
+                        create: DEFAULT_CATEGORIES.map(cat => ({
+                            name: cat.name,
+                            type: cat.type,
+                            color: cat.color,
+                            icon: cat.icon || ''
+                        }))
+                    }
+                },
+                include: {
+                    categories: true
                 }
-            },
-            include: {
-                categories: true
-            }
+            });
         });
 
         // Format the response

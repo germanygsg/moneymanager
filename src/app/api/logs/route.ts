@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { withRLS } from '@/lib/prisma';
 
+// GET /api/logs - Get activity logs for accessible ledgers
+// RLS automatically filters to only show logs from accessible ledgers
 export async function GET() {
     try {
         const session = await getServerSession(authOptions);
@@ -11,34 +13,15 @@ export async function GET() {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Get user's ledgers and shared ledgers
-        const userLedgers = await prisma.ledger.findMany({
-            where: { ownerId: session.user.id },
-            select: { id: true }
-        });
-
-        const sharedLedgers = await prisma.ledgerUser.findMany({
-            where: { userId: session.user.id },
-            select: { ledgerId: true }
-        });
-
-        const allLedgerIds = [
-            ...userLedgers.map(l => l.id),
-            ...sharedLedgers.map(l => l.ledgerId)
-        ];
-
-        if (allLedgerIds.length === 0) {
-            return NextResponse.json([]);
-        }
-
-        const logs = await prisma.activityLog.findMany({
-            where: {
-                ledgerId: { in: allLedgerIds }
-            },
-            orderBy: {
-                createdAt: 'desc'
-            },
-            take: 100 // Limit to reasonable number
+        // With RLS, we can simply query all logs
+        // The database automatically filters based on user's ledger access
+        const logs = await withRLS(session.user.id, async (prisma) => {
+            return await prisma.activityLog.findMany({
+                orderBy: {
+                    createdAt: 'desc'
+                },
+                take: 100 // Limit to reasonable number
+            });
         });
 
         return NextResponse.json(logs);

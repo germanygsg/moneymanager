@@ -16,6 +16,7 @@ export const authOptions: NextAuthOptions = {
                     return null;
                 }
 
+                // RLS policy allows user lookup when no context is set (for auth)
                 const user = await prisma.user.findUnique({
                     where: {
                         username: credentials.username,
